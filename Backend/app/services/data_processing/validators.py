@@ -547,19 +547,18 @@ class URLValidator:
         """Validate URL format"""
         try:
             from urllib.parse import urlparse
+
             result = urlparse(url)
             is_valid = all([result.scheme, result.netloc])
             return ValidationResult(
                 is_valid=is_valid,
                 status=ValidationStatus.VALID if is_valid else ValidationStatus.INVALID,
                 normalized_value=url if is_valid else None,
-                confidence_score=1.0 if is_valid else 0.0
+                confidence_score=1.0 if is_valid else 0.0,
             )
         except Exception as e:
             return ValidationResult(
-                is_valid=False,
-                status=ValidationStatus.INVALID,
-                errors=[str(e)]
+                is_valid=False, status=ValidationStatus.INVALID, errors=[str(e)]
             )
 
 
@@ -567,13 +566,15 @@ class DomainValidator:
     @staticmethod
     def validate(domain: str) -> ValidationResult:
         """Validate domain format"""
-        pattern = r'^[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9]*\.([a-zA-Z]{2,}|xn--[a-zA-Z0-9]+)$'
+        pattern = (
+            r"^[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9]*\.([a-zA-Z]{2,}|xn--[a-zA-Z0-9]+)$"
+        )
         is_valid = bool(re.match(pattern, domain.strip()))
         return ValidationResult(
             is_valid=is_valid,
             status=ValidationStatus.VALID if is_valid else ValidationStatus.INVALID,
             normalized_value=domain.strip() if is_valid else None,
-            confidence_score=1.0 if is_valid else 0.0
+            confidence_score=1.0 if is_valid else 0.0,
         )
 
 
@@ -581,14 +582,14 @@ class LinkedInURLValidator:
     @staticmethod
     def validate(url: str) -> ValidationResult:
         """Validate LinkedIn URL"""
-        is_linkedin = 'linkedin.com' in url
+        is_linkedin = "linkedin.com" in url
         url_result = URLValidator.validate(url)
         is_valid = is_linkedin and url_result.is_valid
         return ValidationResult(
             is_valid=is_valid,
             status=ValidationStatus.VALID if is_valid else ValidationStatus.INVALID,
             normalized_value=url if is_valid else None,
-            confidence_score=1.0 if is_valid else 0.0
+            confidence_score=1.0 if is_valid else 0.0,
         )
 
 
@@ -602,7 +603,7 @@ class CompanyNameValidator:
             is_valid=is_valid,
             status=ValidationStatus.VALID if is_valid else ValidationStatus.INVALID,
             normalized_value=cleaned_name if is_valid else None,
-            confidence_score=1.0 if is_valid else 0.0
+            confidence_score=1.0 if is_valid else 0.0,
         )
 
 
@@ -616,5 +617,5 @@ class ContactNameValidator:
             is_valid=is_valid,
             status=ValidationStatus.VALID if is_valid else ValidationStatus.INVALID,
             normalized_value=cleaned_name if is_valid else None,
-            confidence_score=1.0 if is_valid else 0.0
+            confidence_score=1.0 if is_valid else 0.0,
         )

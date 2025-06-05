@@ -218,9 +218,9 @@ class BaseScraper(ABC):
                     f"Request failed (attempt {attempt + 1}), retrying in {wait_time}s: {e}"
                 )
                 time.sleep(wait_time)
-        
+
         # This should never be reached, but added for type safety
-        raise ScrapingError(f"Request failed after all retries", url=url)
+        raise ScrapingError("Request failed after all retries", url=url)
 
     def _parse_html(self, html: str, url: str) -> BeautifulSoup:
         """Parse HTML content using BeautifulSoup."""
@@ -338,11 +338,11 @@ class BaseScraper(ABC):
     def set_rate_limiter(self, rate_limiter: Any) -> None:
         """Set rate limiter for the scraper"""
         self.rate_limiter = rate_limiter
-    
+
     def set_proxy_manager(self, proxy_manager: Any) -> None:
         """Set proxy manager for the scraper"""
         self.proxy_manager = proxy_manager
-    
+
     def set_progress_callback(self, callback: Any) -> None:
         """Set progress callback function"""
         self.progress_callback = callback

@@ -121,7 +121,9 @@ class TextCleaner:
             changes.append("Normalized unicode characters")
 
         # Remove extra whitespace
-        cleaned_whitespace: str = self.patterns["extra_whitespace"].sub(" ", text).strip()
+        cleaned_whitespace: str = (
+            self.patterns["extra_whitespace"].sub(" ", text).strip()
+        )
         if cleaned_whitespace != text:
             text = cleaned_whitespace
             changes.append("Normalized whitespace")

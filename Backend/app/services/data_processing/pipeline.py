@@ -4,9 +4,6 @@ import logging
 from typing import Dict, List, Optional, Any, Callable, Tuple, Union
 from dataclasses import dataclass, field
 from enum import Enum
-import asyncio
-import logging
-from datetime import datetime
 import time
 
 from .validators import (
@@ -17,7 +14,6 @@ from .validators import (
     LinkedInURLValidator,
     CompanyNameValidator,
     ContactNameValidator,
-    ValidationResult,
 )
 from .cleaning import DataCleaner
 from .enrichment import CompanyEnricher, ContactEnricher
@@ -128,7 +124,18 @@ class DataProcessingPipeline:
         self.config = config or ProcessingConfig()
 
         # Initialize processors
-        self.validators: Dict[str, Union[EmailValidator, PhoneValidator, URLValidator, DomainValidator, LinkedInURLValidator, CompanyNameValidator, ContactNameValidator]] = {
+        self.validators: Dict[
+            str,
+            Union[
+                EmailValidator,
+                PhoneValidator,
+                URLValidator,
+                DomainValidator,
+                LinkedInURLValidator,
+                CompanyNameValidator,
+                ContactNameValidator,
+            ],
+        ] = {
             "email": EmailValidator(),
             "phone": PhoneValidator(),
             "url": URLValidator(),
@@ -608,7 +615,8 @@ class DataProcessingPipeline:
                 processed_count=processed_count,
                 error_count=len(errors),
                 duration=duration,
-                data=company_dedup_result.merged_records + contact_dedup_result.merged_records,
+                data=company_dedup_result.merged_records
+                + contact_dedup_result.merged_records,
                 errors=errors,
                 metadata={
                     "companies_before": company_dedup_result.original_count,
@@ -902,12 +910,14 @@ class DataProcessingPipeline:
             total_items = len(stage_result.data)
             company_count = len(companies)
             contact_count = len(contacts)
-            
+
             if total_items >= company_count + contact_count:
                 new_companies = stage_result.data[:company_count]
-                new_contacts = stage_result.data[company_count:company_count + contact_count]
+                new_contacts = stage_result.data[
+                    company_count : company_count + contact_count
+                ]
                 return new_companies, new_contacts
-        
+
         return companies, contacts
 
     def get_statistics(self) -> Dict[str, Any]:

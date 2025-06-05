@@ -113,7 +113,7 @@ class LinkedInScraper(BaseScraper):
             email_field.clear()
             if not self.login_credentials:
                 raise ScrapingError("Login credentials not set")
-            
+
             email_field.send_keys(self.login_credentials["email"])
 
             # Enter password

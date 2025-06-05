@@ -128,6 +128,7 @@ class WebsiteScraper(BaseScraper):
         """Check if URL can be fetched based on robots.txt"""
         try:
             from urllib.robotparser import RobotFileParser
+
             rp = RobotFileParser()
             robots_url = f"{url.rstrip('/')}/robots.txt"
             rp.set_url(robots_url)
@@ -242,7 +243,7 @@ class WebsiteScraper(BaseScraper):
         """Extract page description."""
         # Try meta description first
         meta_desc = soup.find("meta", attrs={"name": "description"})
-        if meta_desc and hasattr(meta_desc, 'get') and meta_desc.get("content"):
+        if meta_desc and hasattr(meta_desc, "get") and meta_desc.get("content"):
             content = meta_desc.get("content")
             if isinstance(content, str):
                 return content.strip()

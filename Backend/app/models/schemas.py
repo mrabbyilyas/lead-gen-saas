@@ -723,7 +723,7 @@ class HealthCheckResponse(BaseSchema):
 # Add missing schema classes for supabase_service.py:
 class UserActivityCreate(BaseSchema):
     """Schema for creating user activity."""
-    
+
     user_id: int
     activity_type: str
     description: str
@@ -731,42 +731,42 @@ class UserActivityCreate(BaseSchema):
 
 class UserActivityResponse(UserActivityCreate):
     """Schema for user activity response."""
-    
+
     id: int
     created_at: str
 
 
 class SystemMetricsCreate(BaseSchema):
     """Schema for creating system metrics."""
-    
+
     metric_name: str
     metric_value: float
 
 
 class SystemMetricsResponse(SystemMetricsCreate):
     """Schema for system metrics response."""
-    
+
     id: int
     created_at: str
 
 
 class APIKeyCreate(BaseSchema):
     """Schema for creating API key."""
-    
+
     name: str
     permissions: List[str] = []
 
 
 class APIKeyUpdate(BaseSchema):
     """Schema for updating API key."""
-    
+
     name: Optional[str] = None
     permissions: Optional[List[str]] = None
 
 
 class APIKeyResponse(BaseSchema):
     """Schema for API key response."""
-    
+
     id: int
     name: str
     key: str

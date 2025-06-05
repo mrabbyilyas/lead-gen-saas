@@ -285,7 +285,8 @@ class ScraperFactory:
             max_retries=max_retries,
             use_proxy=use_proxy,
             respect_robots_txt=respect_robots_txt,
-            user_agent=user_agent or "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+            user_agent=user_agent
+            or "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
         )
 
     @staticmethod
@@ -305,12 +306,11 @@ class ScraperFactory:
             Configured rate limiter
         """
         from .rate_limiter import RateLimitConfig
-        
+
         config = RateLimitConfig(
-            requests_per_minute=requests_per_minute,
-            requests_per_hour=requests_per_hour
+            requests_per_minute=requests_per_minute, requests_per_hour=requests_per_hour
         )
-        
+
         if adaptive:
             return AdaptiveRateLimiter(config=config)
         else:
@@ -331,18 +331,19 @@ class ScraperFactory:
         """
         # Convert proxy URLs to ProxyConfig objects
         from .proxy_manager import ProxyConfig, ProxyType
+
         proxy_configs = []
-        for proxy_url in (proxy_list or []):
+        for proxy_url in proxy_list or []:
             # Parse proxy URL and create ProxyConfig
             # For now, create basic HTTP proxy configs
-            parts = proxy_url.split(':')
+            parts = proxy_url.split(":")
             if len(parts) >= 2:
-                proxy_configs.append(ProxyConfig(
-                    host=parts[0],
-                    port=int(parts[1]),
-                    proxy_type=ProxyType.HTTP
-                ))
-        
+                proxy_configs.append(
+                    ProxyConfig(
+                        host=parts[0], port=int(parts[1]), proxy_type=ProxyType.HTTP
+                    )
+                )
+
         return ProxyManager(proxy_configs=proxy_configs)
 
 
