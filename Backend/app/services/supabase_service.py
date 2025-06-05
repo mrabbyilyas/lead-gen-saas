@@ -127,6 +127,7 @@ class SupabaseService:
             raise DatabaseError("No data returned from insert operation")
         except Exception as e:
             self._handle_error(e, "create")
+            raise
 
     def get_by_id(self, record_id: Union[str, UUID]) -> Optional[Dict[str, Any]]:
         """Get a record by ID."""
@@ -137,6 +138,7 @@ class SupabaseService:
             return None
         except Exception as e:
             self._handle_error(e, "get_by_id")
+            return None
 
     def get_all(
         self,
@@ -170,6 +172,7 @@ class SupabaseService:
             return response.data or [], total_count
         except Exception as e:
             self._handle_error(e, "get_all")
+            return [], 0
 
     def update(
         self, record_id: Union[str, UUID], data: Dict[str, Any]
@@ -185,6 +188,7 @@ class SupabaseService:
             raise NotFoundError(f"Record with ID {record_id} not found")
         except Exception as e:
             self._handle_error(e, "update")
+            return None
 
     def delete(self, record_id: Union[str, UUID]) -> bool:
         """Delete a record by ID."""
@@ -193,6 +197,7 @@ class SupabaseService:
             return len(response.data) > 0
         except Exception as e:
             self._handle_error(e, "delete")
+            return False
 
     def exists(self, record_id: Union[str, UUID]) -> bool:
         """Check if a record exists."""
@@ -201,6 +206,7 @@ class SupabaseService:
             return len(response.data) > 0
         except Exception as e:
             self._handle_error(e, "exists")
+            return False
 
     def count(self, filters: Optional[Dict[str, Any]] = None) -> int:
         """Count records with optional filters."""
@@ -212,6 +218,7 @@ class SupabaseService:
             return response.count or 0
         except Exception as e:
             self._handle_error(e, "count")
+            return 0
 
 
 class CompanyService(SupabaseService):
@@ -291,6 +298,7 @@ class CompanyService(SupabaseService):
             return companies, total_count
         except Exception as e:
             self._handle_error(e, "search_companies")
+            return [], 0
 
     def get_companies_by_industry(
         self, user_id: str, industry: str, pagination: Optional[PaginationParams] = None
@@ -390,6 +398,7 @@ class ContactService(SupabaseService):
             return contacts, total_count
         except Exception as e:
             self._handle_error(e, "search_contacts")
+            return [], 0
 
 
 class ScrapingJobService(SupabaseService):
@@ -594,7 +603,7 @@ class SystemMetricsService(SupabaseService):
         pagination: Optional[PaginationParams] = None,
     ) -> Tuple[List[SystemMetricsResponse], int]:
         """Get system metrics with optional filtering."""
-        filters = {}
+        filters: Dict[str, Any] = {}
         if metric_name:
             filters["metric_name"] = metric_name
         if start_time:

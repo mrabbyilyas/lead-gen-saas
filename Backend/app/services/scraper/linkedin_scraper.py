@@ -31,7 +31,7 @@ class LinkedInScraper(BaseScraper):
         super().__init__(config)
         self.base_url = "https://www.linkedin.com"
         self.is_logged_in = False
-        self.login_credentials = None
+        self.login_credentials: Optional[Dict[str, str]] = None
 
     def get_source(self) -> ScrapingSource:
         return ScrapingSource.LINKEDIN
@@ -111,6 +111,9 @@ class LinkedInScraper(BaseScraper):
                 EC.presence_of_element_located((By.ID, "username"))
             )
             email_field.clear()
+            if not self.login_credentials:
+                raise ScrapingError("Login credentials not set")
+            
             email_field.send_keys(self.login_credentials["email"])
 
             # Enter password
@@ -143,7 +146,7 @@ class LinkedInScraper(BaseScraper):
         self, driver, query: str, location: str, result: ScrapingResult
     ) -> List[Dict]:
         """Search for companies on LinkedIn."""
-        companies = []
+        companies: List[Dict] = []
 
         try:
             # Construct company search URL
@@ -207,7 +210,7 @@ class LinkedInScraper(BaseScraper):
         self, driver, query: str, location: str, result: ScrapingResult
     ) -> List[Dict]:
         """Search for people on LinkedIn."""
-        contacts = []
+        contacts: List[Dict] = []
 
         try:
             # Construct people search URL
@@ -414,8 +417,14 @@ class LinkedInScraper(BaseScraper):
             return CompanyCreate(
                 name=data["name"],
                 domain="",  # LinkedIn doesn't provide direct domain info
-                website="",
+                website=None,
                 industry=data.get("industry", ""),
+                company_size=None,
+                founded_year=None,
+                revenue_range=None,
+                employee_count=None,
+                data_quality_score=None,
+                lead_score=None,
                 description=data.get("description", ""),
                 address=data.get("location", ""),
                 linkedin_url=data.get("linkedin_url", ""),
@@ -436,12 +445,19 @@ class LinkedInScraper(BaseScraper):
             return ContactCreate(
                 first_name=data.get("first_name", ""),
                 last_name=data.get("last_name", ""),
+                full_name=data.get("full_name", ""),
                 email="",  # LinkedIn doesn't provide email in search results
                 phone="",  # LinkedIn doesn't provide phone in search results
                 job_title=data.get("job_title", ""),
-                company=data.get("company", ""),
+                department=None,
+                seniority_level=None,
                 linkedin_url=data.get("linkedin_url", ""),
+                twitter_handle=None,
+                company=data.get("company", ""),
                 source=self.get_source().value,
+                experience_years=None,
+                contact_quality_score=None,
+                engagement_potential=None,
             )
 
         except Exception as e:
@@ -493,7 +509,9 @@ class LinkedInScraper(BaseScraper):
                 website_element = driver.find_element(
                     By.CSS_SELECTOR, "[data-test-id='about-us-website'] a"
                 )
-                company_details["website"] = website_element.get_attribute("href")
+                href = website_element.get_attribute("href")
+                if href:
+                    company_details["website"] = href
             except NoSuchElementException:
                 pass
 

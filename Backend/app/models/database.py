@@ -10,11 +10,13 @@ from sqlalchemy import (
 )
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, DeclarativeBase
 from sqlalchemy.sql import func
 import uuid
+from typing import Any
 
-Base = declarative_base()
+class Base(DeclarativeBase):
+    pass
 
 
 class Company(Base):
@@ -46,8 +48,8 @@ class Company(Base):
     )  # {"hiring": true, "funding": true, "expansion": false}
     pain_points = Column(JSONB)  # Array of identified pain points
     competitive_landscape = Column(JSONB)  # Array of competitors
-    data_quality_score = Column(DECIMAL(3, 2), default=0.00)  # 0.00 to 1.00
-    lead_score = Column(DECIMAL(5, 2), default=0.00)  # Calculated lead score
+    data_quality_score: Any = Column(DECIMAL(3, 2), default=0.00)  # 0.00 to 1.00
+    lead_score: Any = Column(DECIMAL(5, 2), default=0.00)  # Calculated lead score
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
@@ -92,8 +94,8 @@ class Contact(Base):
     skills = Column(JSONB)  # Array of skills
     experience_years = Column(Integer)
     education = Column(JSONB)  # Array of education entries
-    contact_quality_score = Column(DECIMAL(3, 2), default=0.00)  # 0.00 to 1.00
-    engagement_potential = Column(DECIMAL(3, 2), default=0.00)  # 0.00 to 1.00
+    contact_quality_score: Any = Column(DECIMAL(3, 2), default=0.00)  # 0.00 to 1.00
+    engagement_potential: Any = Column(DECIMAL(3, 2), default=0.00)  # 0.00 to 1.00
     last_activity_date = Column(DateTime(timezone=True))
     is_decision_maker = Column(Boolean, default=False)
     is_verified = Column(Boolean, default=False)
@@ -125,7 +127,7 @@ class ScrapingJob(Base):
         String(50), default="pending"
     )  # 'pending', 'running', 'completed', 'failed', 'cancelled'
     search_parameters = Column(JSONB, nullable=False)  # Search criteria and filters
-    progress_percentage = Column(DECIMAL(5, 2), default=0.00)
+    progress_percentage: Any = Column(DECIMAL(5, 2), default=0.00)
     total_targets = Column(Integer, default=0)
     processed_targets = Column(Integer, default=0)
     successful_extractions = Column(Integer, default=0)
@@ -177,8 +179,8 @@ class ScrapedData(Base):
     source_url = Column(String(1000))
     raw_data = Column(JSONB, nullable=False)  # Complete raw scraped data
     processed_data = Column(JSONB)  # Cleaned and structured data
-    extraction_confidence = Column(DECIMAL(3, 2), default=0.00)  # 0.00 to 1.00
-    data_completeness = Column(DECIMAL(3, 2), default=0.00)  # 0.00 to 1.00
+    extraction_confidence: Any = Column(DECIMAL(3, 2), default=0.00)  # 0.00 to 1.00
+    data_completeness: Any = Column(DECIMAL(3, 2), default=0.00)  # 0.00 to 1.00
     validation_status = Column(
         String(50), default="pending"
     )  # 'pending', 'valid', 'invalid', 'needs_review'
@@ -263,7 +265,7 @@ class SystemMetrics(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     metric_name = Column(String(100), nullable=False)
-    metric_value = Column(DECIMAL(10, 4), nullable=False)
+    metric_value: Any = Column(DECIMAL(10, 4), nullable=False)
     metric_unit = Column(String(20))  # 'seconds', 'count', 'percentage', 'bytes'
     tags = Column(JSONB)  # Additional metric tags for filtering
     recorded_at = Column(DateTime(timezone=True), server_default=func.now())

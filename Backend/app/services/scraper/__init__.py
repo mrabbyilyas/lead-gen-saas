@@ -9,7 +9,6 @@ from .base_scraper import BaseScraper, ScrapingResult, ScrapingError
 from .google_scraper import GoogleScraper
 from .linkedin_scraper import LinkedInScraper
 from .website_scraper import WebsiteScraper
-from .directory_scraper import DirectoryScraper
 from .scraper_factory import ScraperFactory, get_scraper_factory
 from .rate_limiter import RateLimiter
 from .proxy_manager import ProxyManager
@@ -21,7 +20,6 @@ __all__ = [
     "GoogleScraper",
     "LinkedInScraper",
     "WebsiteScraper",
-    "DirectoryScraper",
     "ScraperFactory",
     "get_scraper_factory",
     "RateLimiter",

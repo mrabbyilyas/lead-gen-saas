@@ -26,6 +26,7 @@ class ScrapingStatus(str, Enum):
     FAILED = "failed"
     RATE_LIMITED = "rate_limited"
     BLOCKED = "blocked"
+    CANCELLED = "cancelled"  # Add this line - fixes scraper_manager.py
 
 
 class ScrapingSource(str, Enum):
@@ -135,6 +136,9 @@ class BaseScraper(ABC):
         self.logger = logging.getLogger(self.__class__.__name__)
         self.session = requests.Session()
         self.driver: Optional[webdriver.Chrome] = None
+        self.rate_limiter: Optional[Any] = None
+        self.proxy_manager: Optional[Any] = None
+        self.progress_callback: Optional[Any] = None
         self._setup_session()
 
     def _setup_session(self) -> None:
@@ -329,6 +333,19 @@ class BaseScraper(ABC):
     def validate_query(self, query: str) -> bool:
         """Validate if the query is suitable for this scraper."""
         pass
+
+    # Add missing methods:
+    def set_rate_limiter(self, rate_limiter: Any) -> None:
+        """Set rate limiter for the scraper"""
+        self.rate_limiter = rate_limiter
+    
+    def set_proxy_manager(self, proxy_manager: Any) -> None:
+        """Set proxy manager for the scraper"""
+        self.proxy_manager = proxy_manager
+    
+    def set_progress_callback(self, callback: Any) -> None:
+        """Set progress callback function"""
+        self.progress_callback = callback
 
     def __enter__(self):
         """Context manager entry."""

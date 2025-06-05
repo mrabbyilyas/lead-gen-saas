@@ -693,3 +693,13 @@ class DataCleaner:
             )
 
         return results
+
+    def clean_company_data(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """Clean company data."""
+        cleaned_results = self.clean_all(data)
+        return {key: result.cleaned_value for key, result in cleaned_results.items()}
+
+    def clean_contact_data(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """Clean contact data."""
+        cleaned_results = self.clean_all(data)
+        return {key: result.cleaned_value for key, result in cleaned_results.items()}

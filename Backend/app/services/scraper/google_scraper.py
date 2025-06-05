@@ -81,7 +81,7 @@ class GoogleScraper(BaseScraper):
         self, query: str, location: str, result: ScrapingResult
     ) -> List[Dict]:
         """Scrape Google Maps for business listings."""
-        maps_results = []
+        maps_results: List[Dict] = []
 
         try:
             driver = self._get_driver()
@@ -346,9 +346,15 @@ class GoogleScraper(BaseScraper):
                 phone=data.get("phone", ""),
                 address=data.get("address", ""),
                 industry=data.get("category", ""),
+                company_size=None,
+                founded_year=None,
+                revenue_range=None,
+                employee_count=None,
+                data_quality_score=None,
                 description=f"Rating: {data.get('rating', 'N/A')}",
                 source=self.get_source().value,
                 source_url=self.maps_url,
+                lead_score=None,
             )
 
         except Exception as e:
@@ -374,9 +380,16 @@ class GoogleScraper(BaseScraper):
                 domain=domain,
                 website=data.get("url", ""),
                 phone=data.get("phone", ""),
+                industry=None,
+                company_size=None,
+                founded_year=None,
+                revenue_range=None,
+                employee_count=None,
+                data_quality_score=None,
                 description=data.get("snippet", ""),
                 source=self.get_source().value,
                 source_url=data.get("url", ""),
+                lead_score=None,
             )
 
         except Exception as e:
@@ -394,10 +407,17 @@ class GoogleScraper(BaseScraper):
                 contact = ContactCreate(
                     first_name="",
                     last_name="",
+                    full_name=None,
                     email=data.get("email", ""),
                     phone=data.get("phone", ""),
                     job_title="",
+                    department=None,
+                    seniority_level=None,
+                    twitter_handle=None,
                     source=self.get_source().value,
+                    experience_years=None,
+                    contact_quality_score=None,
+                    engagement_potential=None,
                 )
                 contacts.append(contact)
             except Exception as e:

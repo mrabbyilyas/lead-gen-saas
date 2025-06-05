@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 import uvicorn
 
 from app.core.config import settings
-from app.core.database import supabase_client
+from app.core.database import get_supabase_client
 from app.api.v1.api import api_router
 
 
@@ -17,7 +17,7 @@ async def lifespan(app: FastAPI):
     # Test Supabase connection
     try:
         # Simple test query to verify connection
-        supabase_client.table("test").select("*").limit(1).execute()
+        get_supabase_client().table("test").select("*").limit(1).execute()
         print("✅ Supabase connection successful")
     except Exception as e:
         print(f"⚠️ Supabase connection test failed: {e}")

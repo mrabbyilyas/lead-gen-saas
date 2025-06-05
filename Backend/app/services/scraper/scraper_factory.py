@@ -24,7 +24,7 @@ class ScraperType(Enum):
 class ScraperFactory:
     """Factory for creating and managing scrapers."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.logger = logging.getLogger(__name__)
         self._scrapers: Dict[ScraperType, Type[BaseScraper]] = {
             ScraperType.GOOGLE: GoogleScraper,
@@ -285,15 +285,15 @@ class ScraperFactory:
             max_retries=max_retries,
             use_proxy=use_proxy,
             respect_robots_txt=respect_robots_txt,
-            user_agent=user_agent,
+            user_agent=user_agent or "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
         )
 
     @staticmethod
     def create_rate_limiter(
-        requests_per_minute: int = 30,
+        requests_per_minute: int = 60,
         requests_per_hour: int = 1000,
-        adaptive: bool = True,
-    ) -> RateLimiter:
+        adaptive: bool = False,
+    ) -> Union[RateLimiter, AdaptiveRateLimiter]:
         """Create a rate limiter instance.
 
         Args:
@@ -304,16 +304,17 @@ class ScraperFactory:
         Returns:
             Configured rate limiter
         """
+        from .rate_limiter import RateLimitConfig
+        
+        config = RateLimitConfig(
+            requests_per_minute=requests_per_minute,
+            requests_per_hour=requests_per_hour
+        )
+        
         if adaptive:
-            return AdaptiveRateLimiter(
-                requests_per_minute=requests_per_minute,
-                requests_per_hour=requests_per_hour,
-            )
+            return AdaptiveRateLimiter(config=config)
         else:
-            return RateLimiter(
-                requests_per_minute=requests_per_minute,
-                requests_per_hour=requests_per_hour,
-            )
+            return RateLimiter(config=config)
 
     @staticmethod
     def create_proxy_manager(
@@ -328,9 +329,21 @@ class ScraperFactory:
         Returns:
             Configured proxy manager
         """
-        return ProxyManager(
-            proxy_list=proxy_list or [], rotation_strategy=rotation_strategy
-        )
+        # Convert proxy URLs to ProxyConfig objects
+        from .proxy_manager import ProxyConfig, ProxyType
+        proxy_configs = []
+        for proxy_url in (proxy_list or []):
+            # Parse proxy URL and create ProxyConfig
+            # For now, create basic HTTP proxy configs
+            parts = proxy_url.split(':')
+            if len(parts) >= 2:
+                proxy_configs.append(ProxyConfig(
+                    host=parts[0],
+                    port=int(parts[1]),
+                    proxy_type=ProxyType.HTTP
+                ))
+        
+        return ProxyManager(proxy_configs=proxy_configs)
 
 
 # Global factory instance
@@ -355,3 +368,8 @@ def auto_select_scraper(
 def get_supported_scrapers() -> List[ScraperType]:
     """Convenience function to get supported scrapers."""
     return scraper_factory.get_supported_scrapers()
+
+
+def get_scraper_factory() -> ScraperFactory:
+    """Get the global scraper factory instance."""
+    return scraper_factory

@@ -2,10 +2,11 @@
 
 import re
 import time
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Any
 from urllib.parse import urljoin, urlparse
 
 from bs4 import BeautifulSoup, Tag
+from pydantic import HttpUrl
 
 from app.models.schemas import CompanyCreate, ContactCreate
 from .base_scraper import (
@@ -123,6 +124,18 @@ class WebsiteScraper(BaseScraper):
             url = f"https://{url}"
         return url
 
+    def _can_fetch(self, url: str) -> bool:
+        """Check if URL can be fetched based on robots.txt"""
+        try:
+            from urllib.robotparser import RobotFileParser
+            rp = RobotFileParser()
+            robots_url = f"{url.rstrip('/')}/robots.txt"
+            rp.set_url(robots_url)
+            rp.read()
+            return rp.can_fetch("*", url)
+        except Exception:
+            return True  # Default to allowing if check fails
+
     async def _scrape_page(self, url: str, result: ScrapingResult) -> Dict:
         """Scrape a single page for information."""
         if url in self.visited_urls:
@@ -229,8 +242,10 @@ class WebsiteScraper(BaseScraper):
         """Extract page description."""
         # Try meta description first
         meta_desc = soup.find("meta", attrs={"name": "description"})
-        if meta_desc and meta_desc.get("content"):
-            return meta_desc["content"].strip()
+        if meta_desc and hasattr(meta_desc, 'get') and meta_desc.get("content"):
+            content = meta_desc.get("content")
+            if isinstance(content, str):
+                return content.strip()
 
         # Fallback to first paragraph
         first_p = soup.find("p")
@@ -262,10 +277,17 @@ class WebsiteScraper(BaseScraper):
                 contact = ContactCreate(
                     first_name=contact_data.get("first_name", ""),
                     last_name=contact_data.get("last_name", ""),
+                    full_name=contact_data.get("full_name", ""),
                     email=contact_data.get("email", ""),
                     phone=contact_data.get("phone", ""),
                     job_title=contact_data.get("job_title", ""),
+                    department=contact_data.get("department", ""),
+                    seniority_level=contact_data.get("seniority_level", ""),
+                    twitter_handle=contact_data.get("twitter_handle", ""),
                     source=self.get_source().value,
+                    experience_years=None,
+                    contact_quality_score=None,
+                    engagement_potential=None,
                 )
                 contacts.append(contact)
 
@@ -276,9 +298,16 @@ class WebsiteScraper(BaseScraper):
                     contact = ContactCreate(
                         first_name="",
                         last_name="",
+                        full_name=None,
                         email=email,
                         phone="",
                         job_title="",
+                        department=None,
+                        seniority_level=None,
+                        twitter_handle=None,
+                        experience_years=None,
+                        contact_quality_score=None,
+                        engagement_potential=None,
                         source=self.get_source().value,
                     )
                     contacts.append(contact)
@@ -287,7 +316,7 @@ class WebsiteScraper(BaseScraper):
 
     def _find_contact_sections(self, soup: BeautifulSoup) -> List[Tag]:
         """Find sections that likely contain contact information."""
-        contact_sections = []
+        contact_sections: List[Tag] = []
 
         # Look for common contact section patterns
         selectors = [
@@ -412,7 +441,7 @@ class WebsiteScraper(BaseScraper):
 
     def _extract_company_info_from_page(self, soup: BeautifulSoup, url: str) -> Dict:
         """Extract company information from a page."""
-        company_info = {}
+        company_info: Dict[str, Any] = {}
 
         try:
             # Extract company name
@@ -519,9 +548,16 @@ class WebsiteScraper(BaseScraper):
             return CompanyCreate(
                 name=company_name,
                 domain=domain,
-                website=base_url,
+                website=None if not base_url else HttpUrl(base_url),
                 phone=self._get_primary_phone(result),
                 address=all_data.get("address", ""),
+                industry=None,
+                company_size=None,
+                founded_year=None,
+                revenue_range=None,
+                employee_count=None,
+                data_quality_score=None,
+                lead_score=None,
                 description=all_data.get("description", ""),
                 source=self.get_source().value,
                 source_url=base_url,

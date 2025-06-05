@@ -16,6 +16,9 @@ class BaseSchema(BaseModel):
 
     class Config:
         from_attributes = True
+        validate_assignment = False
+        allow_population_by_field_name = True
+        extra = "ignore"  # Allow extra fields for scraping
         json_encoders = {
             datetime: lambda v: v.isoformat(),
             Decimal: lambda v: float(v),
@@ -80,10 +83,16 @@ class CompanyBase(BaseSchema):
     lead_score: Optional[Decimal] = Field(None, ge=0)
 
 
-class CompanyCreate(CompanyBase, UserMixin):
+class CompanyCreate(CompanyBase):
     """Schema for creating a company."""
 
-    pass
+    # Add these fields - fixes all scraper errors:
+    phone: Optional[str] = None
+    address: Optional[str] = None
+    source: Optional[str] = None
+    source_url: Optional[str] = None
+    linkedin_url: Optional[str] = None
+    created_by: Optional[UUID] = None  # Make optional for scraping
 
 
 class CompanyUpdate(BaseSchema):
@@ -163,10 +172,14 @@ class ContactBase(BaseSchema):
         return v
 
 
-class ContactCreate(ContactBase, UserMixin):
+class ContactCreate(ContactBase):
     """Schema for creating a contact."""
 
-    pass
+    # Add these fields - fixes all scraper errors:
+    source: Optional[str] = None
+    company: Optional[str] = None  # For linkedin_scraper.py line 436
+    name: Optional[str] = None
+    created_by: Optional[UUID] = None  # Make optional for scraping
 
 
 class ContactUpdate(BaseSchema):
@@ -497,6 +510,8 @@ class PaginationParams(BaseSchema):
 
     page: int = Field(default=1, ge=1)
     size: int = Field(default=20, ge=1, le=100)
+    offset: int = 0
+    page_size: int = 10  # Add this field - fixes supabase_service.py
 
 
 class SortParams(BaseSchema):
@@ -703,3 +718,57 @@ class HealthCheckResponse(BaseSchema):
     redis: str = "connected"
     services: Dict[str, str] = Field(default_factory=dict)
     uptime: float = 0.0
+
+
+# Add missing schema classes for supabase_service.py:
+class UserActivityCreate(BaseSchema):
+    """Schema for creating user activity."""
+    
+    user_id: int
+    activity_type: str
+    description: str
+
+
+class UserActivityResponse(UserActivityCreate):
+    """Schema for user activity response."""
+    
+    id: int
+    created_at: str
+
+
+class SystemMetricsCreate(BaseSchema):
+    """Schema for creating system metrics."""
+    
+    metric_name: str
+    metric_value: float
+
+
+class SystemMetricsResponse(SystemMetricsCreate):
+    """Schema for system metrics response."""
+    
+    id: int
+    created_at: str
+
+
+class APIKeyCreate(BaseSchema):
+    """Schema for creating API key."""
+    
+    name: str
+    permissions: List[str] = []
+
+
+class APIKeyUpdate(BaseSchema):
+    """Schema for updating API key."""
+    
+    name: Optional[str] = None
+    permissions: Optional[List[str]] = None
+
+
+class APIKeyResponse(BaseSchema):
+    """Schema for API key response."""
+    
+    id: int
+    name: str
+    key: str
+    permissions: List[str]
+    created_at: str

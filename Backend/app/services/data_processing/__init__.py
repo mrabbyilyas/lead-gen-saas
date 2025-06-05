@@ -9,17 +9,16 @@ This module provides comprehensive data processing capabilities including:
 - Company size estimation
 """
 
-from .data_processor import DataProcessor
 from .validators import EmailValidator, PhoneValidator, DataValidator
 from .enrichment import CompanyEnricher, ContactEnricher, TechnologyDetector
-from .deduplication import DeduplicationEngine, CompanyDeduplicator, ContactDeduplicator
+from .deduplication import DataDeduplicator, CompanyDeduplicator, ContactDeduplicator
 from .cleaning import DataCleaner, TextCleaner, AddressCleaner
 from .estimation import CompanySizeEstimator, RevenueEstimator
-from .pipeline import ProcessingPipeline, PipelineConfig, ProcessingResult
+from .pipeline import DataProcessingPipeline, ProcessingConfig, PipelineResult
 
 __all__ = [
     # Main processor
-    "DataProcessor",
+    "DataProcessingPipeline",
     # Validators
     "EmailValidator",
     "PhoneValidator",
@@ -29,7 +28,7 @@ __all__ = [
     "ContactEnricher",
     "TechnologyDetector",
     # Deduplication
-    "DeduplicationEngine",
+    "DataDeduplicator",
     "CompanyDeduplicator",
     "ContactDeduplicator",
     # Cleaning
@@ -40,11 +39,11 @@ __all__ = [
     "CompanySizeEstimator",
     "RevenueEstimator",
     # Pipeline
-    "ProcessingPipeline",
-    "PipelineConfig",
-    "ProcessingResult",
+    "DataProcessingPipeline",
+    "ProcessingConfig",
+    "PipelineResult",
 ]
 
 # Create default instances
-data_processor = DataProcessor()
-processing_pipeline = ProcessingPipeline()
+data_processing_pipeline = DataProcessingPipeline()
+processing_pipeline = DataProcessingPipeline()

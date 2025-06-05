@@ -1,9 +1,12 @@
 """Main data processing pipeline orchestrator."""
 
 import logging
-from typing import Dict, List, Optional, Any, Callable, Tuple
+from typing import Dict, List, Optional, Any, Callable, Tuple, Union
 from dataclasses import dataclass, field
 from enum import Enum
+import asyncio
+import logging
+from datetime import datetime
 import time
 
 from .validators import (
@@ -14,6 +17,7 @@ from .validators import (
     LinkedInURLValidator,
     CompanyNameValidator,
     ContactNameValidator,
+    ValidationResult,
 )
 from .cleaning import DataCleaner
 from .enrichment import CompanyEnricher, ContactEnricher
@@ -124,7 +128,7 @@ class DataProcessingPipeline:
         self.config = config or ProcessingConfig()
 
         # Initialize processors
-        self.validators = {
+        self.validators: Dict[str, Union[EmailValidator, PhoneValidator, URLValidator, DomainValidator, LinkedInURLValidator, CompanyNameValidator, ContactNameValidator]] = {
             "email": EmailValidator(),
             "phone": PhoneValidator(),
             "url": URLValidator(),
@@ -369,7 +373,7 @@ class DataProcessingPipeline:
                 processed_count=processed_count,
                 error_count=len(errors),
                 duration=duration,
-                data=[validated_companies, validated_contacts],
+                data=validated_companies + validated_contacts,
                 errors=errors,
                 metadata={
                     "companies_validated": len(validated_companies),
@@ -409,7 +413,7 @@ class DataProcessingPipeline:
             for i, company in enumerate(companies):
                 try:
                     cleaned_company = self.cleaner.clean_company_data(company)
-                    cleaned_companies.append(cleaned_company.cleaned_data)
+                    cleaned_companies.append(cleaned_company)
                     processed_count += 1
                 except Exception as e:
                     errors.append(f"Company cleaning error at index {i}: {str(e)}")
@@ -425,7 +429,7 @@ class DataProcessingPipeline:
             for i, contact in enumerate(contacts):
                 try:
                     cleaned_contact = self.cleaner.clean_contact_data(contact)
-                    cleaned_contacts.append(cleaned_contact.cleaned_data)
+                    cleaned_contacts.append(cleaned_contact)
                     processed_count += 1
                 except Exception as e:
                     errors.append(f"Contact cleaning error at index {i}: {str(e)}")
@@ -448,7 +452,7 @@ class DataProcessingPipeline:
                 processed_count=processed_count,
                 error_count=len(errors),
                 duration=duration,
-                data=[cleaned_companies, cleaned_contacts],
+                data=cleaned_companies + cleaned_contacts,
                 errors=errors,
                 metadata={
                     "companies_cleaned": len(cleaned_companies),
@@ -539,7 +543,7 @@ class DataProcessingPipeline:
                 processed_count=processed_count,
                 error_count=len(errors),
                 duration=duration,
-                data=[enriched_companies, enriched_contacts],
+                data=enriched_companies + enriched_contacts,
                 errors=errors,
                 metadata={
                     "companies_enriched": len(enriched_companies),
@@ -604,10 +608,7 @@ class DataProcessingPipeline:
                 processed_count=processed_count,
                 error_count=len(errors),
                 duration=duration,
-                data=[
-                    company_dedup_result.merged_records,
-                    contact_dedup_result.merged_records,
-                ],
+                data=company_dedup_result.merged_records + contact_dedup_result.merged_records,
                 errors=errors,
                 metadata={
                     "companies_before": company_dedup_result.original_count,
@@ -714,7 +715,7 @@ class DataProcessingPipeline:
                 processed_count=processed_count,
                 error_count=len(errors),
                 duration=duration,
-                data=[estimated_companies, estimated_contacts],
+                data=estimated_companies + estimated_contacts,
                 errors=errors,
                 metadata={
                     "companies_estimated": len(estimated_companies),
@@ -775,7 +776,7 @@ class DataProcessingPipeline:
                 processed_count=processed_count,
                 error_count=0,
                 duration=duration,
-                data=[companies, contacts],
+                data=companies + contacts,
                 errors=errors,
                 metadata={
                     "final_companies": len(companies),
@@ -895,8 +896,18 @@ class DataProcessingPipeline:
         contacts: List[Dict[str, Any]],
     ) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
         """Extract processed data from stage result."""
-        if stage_result.data and len(stage_result.data) >= 2:
-            return stage_result.data[0], stage_result.data[1]
+        # Since we now concatenate data in stage results, we need to split it back
+        if stage_result.data:
+            # Assume first half are companies, second half are contacts
+            total_items = len(stage_result.data)
+            company_count = len(companies)
+            contact_count = len(contacts)
+            
+            if total_items >= company_count + contact_count:
+                new_companies = stage_result.data[:company_count]
+                new_contacts = stage_result.data[company_count:company_count + contact_count]
+                return new_companies, new_contacts
+        
         return companies, contacts
 
     def get_statistics(self) -> Dict[str, Any]:

@@ -3,7 +3,7 @@
 import asyncio
 import logging
 from datetime import datetime
-from typing import Dict, List, Optional, Set, Union
+from typing import Any, Dict, List, Optional, Set, Union
 from uuid import uuid4
 
 from .base_scraper import ScrapingResult, ScrapingStatus, ScrapingConfig
@@ -295,13 +295,13 @@ class ScraperManager:
         # Convert to dictionaries
         return [job.to_dict() for job in paginated_jobs]
 
-    async def get_job_stats(self) -> Dict:
+    async def get_job_stats(self) -> Dict[str, Any]:
         """Get statistics about jobs.
 
         Returns:
             Dictionary with job statistics
         """
-        stats = {
+        stats: Dict[str, Any] = {
             "total_jobs": len(self.jobs),
             "active_jobs": len(self.active_jobs),
             "queued_jobs": len(self.job_queue),

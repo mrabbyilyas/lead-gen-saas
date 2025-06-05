@@ -1,3 +1,4 @@
+from typing import Optional
 from supabase import create_client, Client
 from app.core.config import settings
 
@@ -5,8 +6,8 @@ from app.core.config import settings
 class SupabaseClient:
     """Supabase client wrapper"""
 
-    def __init__(self):
-        self._client: Client = None
+    def __init__(self) -> None:
+        self._client: Optional[Client] = None
         self._initialize_client()
 
     def _initialize_client(self) -> None:
@@ -20,17 +21,20 @@ class SupabaseClient:
             print(f"❌ Failed to initialize Supabase client: {e}")
             raise
 
-    @property
-    def client(self) -> Client:
+    def get_client(self) -> Client:
         """Get Supabase client instance"""
         if self._client is None:
             self._initialize_client()
+        if self._client is None:
+            raise RuntimeError("Failed to initialize Supabase client")
         return self._client
 
     def test_connection(self) -> bool:
         """Test Supabase connection"""
         try:
             # Try to access the client
+            if self._client is None:
+                return False
             self._client.table("test").select("*").limit(1).execute()
             return True
         except Exception as e:
@@ -40,13 +44,12 @@ class SupabaseClient:
 
 # Create global Supabase client instance
 supabase_db = SupabaseClient()
-supabase_client = supabase_db.client
 
 
 # Database helper functions
 def get_supabase_client() -> Client:
     """Get Supabase client instance"""
-    return supabase_client
+    return supabase_db.get_client()
 
 
 def test_database_connection() -> bool:
