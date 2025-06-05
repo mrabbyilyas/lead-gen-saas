@@ -1,0 +1,6 @@
+database password: elvK48o1UMNOM1Ay
+project URL: https://gqfpnxqddmvzobtdjivn.supabase.co
+API Key: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdxZnBueHFkZG12em9idGRqaXZuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkxMDgyMTAsImV4cCI6MjA2NDY4NDIxMH0._LCv8HecY2yPZuy5INTFP7ECwWrnbStF9kWxXEupwds
+
+supabase python docs: https://supabase.com/docs/reference/python/initializing 
+
