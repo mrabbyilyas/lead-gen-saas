@@ -10,26 +10,29 @@ from pydantic import BaseModel, EmailStr, Field, HttpUrl, validator
 # Base Schemas
 # ============================================================================
 
+
 class BaseSchema(BaseModel):
     """Base schema with common configuration."""
-    
+
     class Config:
         from_attributes = True
         json_encoders = {
             datetime: lambda v: v.isoformat(),
             Decimal: lambda v: float(v),
-            UUID: lambda v: str(v)
+            UUID: lambda v: str(v),
         }
 
 
 class TimestampMixin(BaseModel):
     """Mixin for models with timestamp fields."""
+
     created_at: datetime
     updated_at: datetime
 
 
 class UserMixin(BaseModel):
     """Mixin for models with user tracking."""
+
     created_by: UUID
 
 
@@ -37,8 +40,10 @@ class UserMixin(BaseModel):
 # Location Schema
 # ============================================================================
 
+
 class LocationSchema(BaseModel):
     """Schema for location data."""
+
     city: Optional[str] = None
     state: Optional[str] = None
     country: Optional[str] = None
@@ -52,8 +57,10 @@ class LocationSchema(BaseModel):
 # Company Schemas
 # ============================================================================
 
+
 class CompanyBase(BaseSchema):
     """Base company schema."""
+
     name: str = Field(..., min_length=1, max_length=255)
     domain: Optional[str] = Field(None, max_length=255)
     website: Optional[HttpUrl] = None
@@ -75,11 +82,13 @@ class CompanyBase(BaseSchema):
 
 class CompanyCreate(CompanyBase, UserMixin):
     """Schema for creating a company."""
+
     pass
 
 
 class CompanyUpdate(BaseSchema):
     """Schema for updating a company."""
+
     name: Optional[str] = Field(None, min_length=1, max_length=255)
     domain: Optional[str] = Field(None, max_length=255)
     website: Optional[HttpUrl] = None
@@ -101,6 +110,7 @@ class CompanyUpdate(BaseSchema):
 
 class CompanyResponse(CompanyBase, TimestampMixin, UserMixin):
     """Schema for company response."""
+
     id: UUID
     contacts_count: Optional[int] = 0
     scraped_data_count: Optional[int] = 0
@@ -108,6 +118,7 @@ class CompanyResponse(CompanyBase, TimestampMixin, UserMixin):
 
 class CompanyListResponse(BaseSchema):
     """Schema for company list response."""
+
     companies: List[CompanyResponse]
     total: int
     page: int
@@ -119,8 +130,10 @@ class CompanyListResponse(BaseSchema):
 # Contact Schemas
 # ============================================================================
 
+
 class ContactBase(BaseSchema):
     """Base contact schema."""
+
     company_id: Optional[UUID] = None
     first_name: Optional[str] = Field(None, max_length=100)
     last_name: Optional[str] = Field(None, max_length=100)
@@ -143,20 +156,22 @@ class ContactBase(BaseSchema):
     is_decision_maker: Optional[bool] = False
     is_verified: Optional[bool] = False
 
-    @validator('twitter_handle')
+    @validator("twitter_handle")
     def validate_twitter_handle(cls, v):
-        if v and not v.startswith('@'):
-            v = f'@{v}'
+        if v and not v.startswith("@"):
+            v = f"@{v}"
         return v
 
 
 class ContactCreate(ContactBase, UserMixin):
     """Schema for creating a contact."""
+
     pass
 
 
 class ContactUpdate(BaseSchema):
     """Schema for updating a contact."""
+
     company_id: Optional[UUID] = None
     first_name: Optional[str] = Field(None, max_length=100)
     last_name: Optional[str] = Field(None, max_length=100)
@@ -182,12 +197,14 @@ class ContactUpdate(BaseSchema):
 
 class ContactResponse(ContactBase, TimestampMixin, UserMixin):
     """Schema for contact response."""
+
     id: UUID
     company: Optional[CompanyResponse] = None
 
 
 class ContactListResponse(BaseSchema):
     """Schema for contact list response."""
+
     contacts: List[ContactResponse]
     total: int
     page: int
@@ -199,16 +216,24 @@ class ContactListResponse(BaseSchema):
 # Scraping Job Schemas
 # ============================================================================
 
+
 class ScrapingJobBase(BaseSchema):
     """Base scraping job schema."""
+
     job_name: str = Field(..., min_length=1, max_length=255)
     job_type: str = Field(..., max_length=50)
     search_parameters: Dict[str, Any] = Field(...)
     source_urls: Optional[List[str]] = None
 
-    @validator('job_type')
+    @validator("job_type")
     def validate_job_type(cls, v):
-        allowed_types = ['google_my_business', 'linkedin', 'website', 'directory', 'custom']
+        allowed_types = [
+            "google_my_business",
+            "linkedin",
+            "website",
+            "directory",
+            "custom",
+        ]
         if v not in allowed_types:
             raise ValueError(f'job_type must be one of: {", ".join(allowed_types)}')
         return v
@@ -216,11 +241,13 @@ class ScrapingJobBase(BaseSchema):
 
 class ScrapingJobCreate(ScrapingJobBase, UserMixin):
     """Schema for creating a scraping job."""
+
     pass
 
 
 class ScrapingJobUpdate(BaseSchema):
     """Schema for updating a scraping job."""
+
     job_name: Optional[str] = Field(None, min_length=1, max_length=255)
     status: Optional[str] = Field(None, max_length=50)
     progress_percentage: Optional[Decimal] = Field(None, ge=0, le=100)
@@ -237,20 +264,29 @@ class ScrapingJobUpdate(BaseSchema):
     error_details: Optional[Dict[str, Any]] = None
     performance_metrics: Optional[Dict[str, Any]] = None
 
-    @validator('status')
+    @validator("status")
     def validate_status(cls, v):
         if v is not None:
-            allowed_statuses = ['pending', 'running', 'completed', 'failed', 'cancelled']
+            allowed_statuses = [
+                "pending",
+                "running",
+                "completed",
+                "failed",
+                "cancelled",
+            ]
             if v not in allowed_statuses:
-                raise ValueError(f'status must be one of: {", ".join(allowed_statuses)}')
+                raise ValueError(
+                    f'status must be one of: {", ".join(allowed_statuses)}'
+                )
         return v
 
 
 class ScrapingJobResponse(ScrapingJobBase, TimestampMixin, UserMixin):
     """Schema for scraping job response."""
+
     id: UUID
-    status: str = 'pending'
-    progress_percentage: Decimal = Decimal('0.00')
+    status: str = "pending"
+    progress_percentage: Decimal = Decimal("0.00")
     total_targets: int = 0
     processed_targets: int = 0
     successful_extractions: int = 0
@@ -267,6 +303,7 @@ class ScrapingJobResponse(ScrapingJobBase, TimestampMixin, UserMixin):
 
 class ScrapingJobListResponse(BaseSchema):
     """Schema for scraping job list response."""
+
     jobs: List[ScrapingJobResponse]
     total: int
     page: int
@@ -278,8 +315,10 @@ class ScrapingJobListResponse(BaseSchema):
 # Scraped Data Schemas
 # ============================================================================
 
+
 class ScrapedDataBase(BaseSchema):
     """Base scraped data schema."""
+
     job_id: UUID
     company_id: Optional[UUID] = None
     contact_id: Optional[UUID] = None
@@ -289,7 +328,7 @@ class ScrapedDataBase(BaseSchema):
     processed_data: Optional[Dict[str, Any]] = None
     extraction_confidence: Optional[Decimal] = Field(None, ge=0, le=1)
     data_completeness: Optional[Decimal] = Field(None, ge=0, le=1)
-    validation_status: str = Field(default='pending', max_length=50)
+    validation_status: str = Field(default="pending", max_length=50)
     validation_errors: Optional[List[str]] = None
     duplicate_of: Optional[UUID] = None
     is_processed: bool = False
@@ -297,28 +336,38 @@ class ScrapedDataBase(BaseSchema):
     scraped_at: Optional[datetime] = None
     processed_at: Optional[datetime] = None
 
-    @validator('source_type')
+    @validator("source_type")
     def validate_source_type(cls, v):
-        allowed_types = ['google_my_business', 'linkedin', 'website', 'directory', 'custom']
+        allowed_types = [
+            "google_my_business",
+            "linkedin",
+            "website",
+            "directory",
+            "custom",
+        ]
         if v not in allowed_types:
             raise ValueError(f'source_type must be one of: {", ".join(allowed_types)}')
         return v
 
-    @validator('validation_status')
+    @validator("validation_status")
     def validate_validation_status(cls, v):
-        allowed_statuses = ['pending', 'valid', 'invalid', 'needs_review']
+        allowed_statuses = ["pending", "valid", "invalid", "needs_review"]
         if v not in allowed_statuses:
-            raise ValueError(f'validation_status must be one of: {", ".join(allowed_statuses)}')
+            raise ValueError(
+                f'validation_status must be one of: {", ".join(allowed_statuses)}'
+            )
         return v
 
 
 class ScrapedDataCreate(ScrapedDataBase):
     """Schema for creating scraped data."""
+
     pass
 
 
 class ScrapedDataUpdate(BaseSchema):
     """Schema for updating scraped data."""
+
     processed_data: Optional[Dict[str, Any]] = None
     extraction_confidence: Optional[Decimal] = Field(None, ge=0, le=1)
     data_completeness: Optional[Decimal] = Field(None, ge=0, le=1)
@@ -331,6 +380,7 @@ class ScrapedDataUpdate(BaseSchema):
 
 class ScrapedDataResponse(ScrapedDataBase, TimestampMixin):
     """Schema for scraped data response."""
+
     id: UUID
     scraping_job: Optional[ScrapingJobResponse] = None
     company: Optional[CompanyResponse] = None
@@ -339,6 +389,7 @@ class ScrapedDataResponse(ScrapedDataBase, TimestampMixin):
 
 class ScrapedDataListResponse(BaseSchema):
     """Schema for scraped data list response."""
+
     scraped_data: List[ScrapedDataResponse]
     total: int
     page: int
@@ -350,16 +401,18 @@ class ScrapedDataListResponse(BaseSchema):
 # Data Export Schemas
 # ============================================================================
 
+
 class DataExportBase(BaseSchema):
     """Base data export schema."""
+
     export_name: str = Field(..., min_length=1, max_length=255)
     export_type: str = Field(..., max_length=50)
     filters: Optional[Dict[str, Any]] = None
     expires_at: Optional[datetime] = None
 
-    @validator('export_type')
+    @validator("export_type")
     def validate_export_type(cls, v):
-        allowed_types = ['csv', 'excel', 'json']
+        allowed_types = ["csv", "excel", "json"]
         if v not in allowed_types:
             raise ValueError(f'export_type must be one of: {", ".join(allowed_types)}')
         return v
@@ -367,11 +420,13 @@ class DataExportBase(BaseSchema):
 
 class DataExportCreate(DataExportBase, UserMixin):
     """Schema for creating a data export."""
+
     pass
 
 
 class DataExportUpdate(BaseSchema):
     """Schema for updating a data export."""
+
     status: Optional[str] = Field(None, max_length=50)
     total_records: Optional[int] = Field(None, ge=0)
     file_path: Optional[str] = Field(None, max_length=1000)
@@ -379,19 +434,22 @@ class DataExportUpdate(BaseSchema):
     download_count: Optional[int] = Field(None, ge=0)
     error_message: Optional[str] = None
 
-    @validator('status')
+    @validator("status")
     def validate_status(cls, v):
         if v is not None:
-            allowed_statuses = ['pending', 'processing', 'completed', 'failed']
+            allowed_statuses = ["pending", "processing", "completed", "failed"]
             if v not in allowed_statuses:
-                raise ValueError(f'status must be one of: {", ".join(allowed_statuses)}')
+                raise ValueError(
+                    f'status must be one of: {", ".join(allowed_statuses)}'
+                )
         return v
 
 
 class DataExportResponse(DataExportBase, TimestampMixin, UserMixin):
     """Schema for data export response."""
+
     id: UUID
-    status: str = 'pending'
+    status: str = "pending"
     total_records: int = 0
     file_path: Optional[str] = None
     file_size_bytes: Optional[int] = None
@@ -401,6 +459,7 @@ class DataExportResponse(DataExportBase, TimestampMixin, UserMixin):
 
 class DataExportListResponse(BaseSchema):
     """Schema for data export list response."""
+
     exports: List[DataExportResponse]
     total: int
     page: int
@@ -412,9 +471,11 @@ class DataExportListResponse(BaseSchema):
 # API Request/Response Schemas
 # ============================================================================
 
+
 # Search and Filtering Schemas
 class SearchFilters(BaseSchema):
     """Schema for search filters."""
+
     query: Optional[str] = None
     industry: Optional[List[str]] = None
     company_size: Optional[List[str]] = None
@@ -433,18 +494,20 @@ class SearchFilters(BaseSchema):
 
 class PaginationParams(BaseSchema):
     """Schema for pagination parameters."""
+
     page: int = Field(default=1, ge=1)
     size: int = Field(default=20, ge=1, le=100)
 
 
 class SortParams(BaseSchema):
     """Schema for sorting parameters."""
-    sort_by: str = Field(default='created_at')
-    sort_order: str = Field(default='desc')
 
-    @validator('sort_order')
+    sort_by: str = Field(default="created_at")
+    sort_order: str = Field(default="desc")
+
+    @validator("sort_order")
     def validate_sort_order(cls, v):
-        if v not in ['asc', 'desc']:
+        if v not in ["asc", "desc"]:
             raise ValueError('sort_order must be either "asc" or "desc"')
         return v
 
@@ -452,6 +515,7 @@ class SortParams(BaseSchema):
 # Search Request Schema
 class SearchRequest(BaseSchema):
     """Schema for search requests."""
+
     filters: Optional[SearchFilters] = None
     pagination: Optional[PaginationParams] = PaginationParams()
     sort: Optional[SortParams] = SortParams()
@@ -460,6 +524,7 @@ class SearchRequest(BaseSchema):
 # Lead Scoring Schemas
 class LeadScoreBreakdown(BaseSchema):
     """Schema for lead score breakdown."""
+
     contact_completeness: Decimal = Field(ge=0)
     business_indicators: Decimal = Field(ge=0)
     data_quality: Decimal = Field(ge=0)
@@ -470,6 +535,7 @@ class LeadScoreBreakdown(BaseSchema):
 
 class LeadResponse(BaseSchema):
     """Schema for lead response with enhanced data."""
+
     company: CompanyResponse
     contacts: List[ContactResponse]
     lead_score_breakdown: LeadScoreBreakdown
@@ -479,6 +545,7 @@ class LeadResponse(BaseSchema):
 
 class LeadListResponse(BaseSchema):
     """Schema for lead list response."""
+
     leads: List[LeadResponse]
     total: int
     page: int
@@ -490,12 +557,14 @@ class LeadListResponse(BaseSchema):
 # Analytics Schemas
 class AnalyticsTimeRange(BaseSchema):
     """Schema for analytics time range."""
+
     start_date: datetime
     end_date: datetime
 
 
 class JobSummaryAnalytics(BaseSchema):
     """Schema for job summary analytics."""
+
     total_jobs: int = 0
     completed_jobs: int = 0
     failed_jobs: int = 0
@@ -508,6 +577,7 @@ class JobSummaryAnalytics(BaseSchema):
 
 class LeadQualityDistribution(BaseSchema):
     """Schema for lead quality distribution."""
+
     high_quality: int = 0  # score >= 80
     medium_quality: int = 0  # score 50-79
     low_quality: int = 0  # score < 50
@@ -517,6 +587,7 @@ class LeadQualityDistribution(BaseSchema):
 
 class ContactDataInsights(BaseSchema):
     """Schema for contact data insights."""
+
     total_contacts: int = 0
     verified_contacts: int = 0
     decision_makers: int = 0
@@ -530,6 +601,7 @@ class ContactDataInsights(BaseSchema):
 
 class IndustryBreakdown(BaseSchema):
     """Schema for industry breakdown."""
+
     industry_distribution: Dict[str, int] = Field(default_factory=dict)
     top_industries: List[Dict[str, Union[str, int]]] = Field(default_factory=list)
     company_size_distribution: Dict[str, int] = Field(default_factory=dict)
@@ -538,6 +610,7 @@ class IndustryBreakdown(BaseSchema):
 
 class TechnologyTrends(BaseSchema):
     """Schema for technology trends."""
+
     top_technologies: List[Dict[str, Union[str, int]]] = Field(default_factory=list)
     technology_adoption_rate: Dict[str, Decimal] = Field(default_factory=dict)
     emerging_technologies: List[str] = Field(default_factory=list)
@@ -546,6 +619,7 @@ class TechnologyTrends(BaseSchema):
 
 class AnalyticsResponse(BaseSchema):
     """Schema for comprehensive analytics response."""
+
     time_range: AnalyticsTimeRange
     job_summary: JobSummaryAnalytics
     lead_quality: LeadQualityDistribution
@@ -558,6 +632,7 @@ class AnalyticsResponse(BaseSchema):
 # WebSocket Schemas
 class WebSocketMessage(BaseSchema):
     """Schema for WebSocket messages."""
+
     type: str = Field(..., max_length=50)
     data: Dict[str, Any] = Field(default_factory=dict)
     timestamp: datetime = Field(default_factory=datetime.utcnow)
@@ -565,6 +640,7 @@ class WebSocketMessage(BaseSchema):
 
 class JobProgressUpdate(BaseSchema):
     """Schema for job progress updates via WebSocket."""
+
     job_id: UUID
     status: str
     progress_percentage: Decimal
@@ -578,6 +654,7 @@ class JobProgressUpdate(BaseSchema):
 
 class LeadDiscoveryNotification(BaseSchema):
     """Schema for lead discovery notifications."""
+
     job_id: UUID
     company_id: UUID
     company_name: str
@@ -589,6 +666,7 @@ class LeadDiscoveryNotification(BaseSchema):
 # Error Schemas
 class ErrorDetail(BaseSchema):
     """Schema for error details."""
+
     field: Optional[str] = None
     message: str
     code: Optional[str] = None
@@ -596,6 +674,7 @@ class ErrorDetail(BaseSchema):
 
 class ErrorResponse(BaseSchema):
     """Schema for error responses."""
+
     error: str
     message: str
     details: Optional[List[ErrorDetail]] = None
@@ -606,6 +685,7 @@ class ErrorResponse(BaseSchema):
 # Success Schemas
 class SuccessResponse(BaseSchema):
     """Schema for success responses."""
+
     success: bool = True
     message: str
     data: Optional[Dict[str, Any]] = None
@@ -615,10 +695,11 @@ class SuccessResponse(BaseSchema):
 # Health Check Schema
 class HealthCheckResponse(BaseSchema):
     """Schema for health check response."""
-    status: str = 'healthy'
+
+    status: str = "healthy"
     timestamp: datetime = Field(default_factory=datetime.utcnow)
     version: str
-    database: str = 'connected'
-    redis: str = 'connected'
+    database: str = "connected"
+    redis: str = "connected"
     services: Dict[str, str] = Field(default_factory=dict)
     uptime: float = 0.0

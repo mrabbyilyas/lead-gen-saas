@@ -1,0 +1,176 @@
+(venv) 
+ASUS TUF@RbbyWorkMachine MINGW64 ~/Data Project/lead-gen-saas/Backend (main)
+$ mypy .
+app\services\data_processing\estimation.py:295: error: Argument "key" to "max" has incompatible type overloaded function; expected "Callable[[Any], SupportsDunderLT[Any] | SupportsDunderGT[Any]]"  [arg-type]
+app\services\data_processing\estimation.py:312: error: Argument "key" to "max" has incompatible type overloaded function; expected "Callable[[Any], SupportsDunderLT[Any] | SupportsDunderGT[Any]]"  [arg-type]
+app\services\data_processing\estimation.py:334: error: Incompatible types in assignment (expression has type "int", target has type "bool")  [assignment]
+app\services\data_processing\estimation.py:340: error: Incompatible types in assignment (expression has type "int", target has type "bool")  [assignment]
+app\models\api_schemas.py:392: error: No overload variant of "Field" matches argument types "EllipsisType", "int", "int"  [call-overload]
+app\models\api_schemas.py:392: note: Possible overload variants:
+app\models\api_schemas.py:392: note:     def Field(default: EllipsisType, *, alias: str | None = ..., alias_priority: int | None = ..., validation_alias: str | AliasPath | AliasChoices | None = ..., serialization_alias: str | None = ..., title: str | None = ..., field_title_generator: Callable[[str, FieldInfo], str] | None = ..., description: str | None = ..., examples: list[Any] | None = ..., exclude: bool | None = ..., discriminator: str | Discriminator | None = ..., deprecated: deprecated | str | bool | None = ..., json_schema_extra: JsonDict | Callable[[JsonDict], None] | None = ..., frozen: bool | None = ..., validate_default: bool | None = ..., repr: bool = ..., init: bool | None = ..., init_var: bool | None = ..., kw_only: bool | None = ..., pattern: str | Pattern[str] | None = ..., strict: bool | None = ..., coerce_numbers_to_str: bool | None = ..., gt: SupportsGt | None = ..., ge: SupportsGe | None = ..., lt: SupportsLt | None = ..., le: SupportsLe | None = ..., multiple_of: float | None = ..., allow_inf_nan: bool | None = ..., max_digits: int | None = ..., decimal_places: int | None = ..., min_length: int | None = ..., max_length: int | None = ..., union_mode: Literal['smart', 'left_to_right'] = ..., fail_fast: bool | None = ...) -> Any
+app\models\api_schemas.py:392: note:     def [_T] Field(default: _T, *, alias: str | None = ..., alias_priority: int | None = ..., validation_alias: str | AliasPath | AliasChoices | None = ..., serialization_alias: str | None = ..., title: str | None = ..., field_title_generator: Callable[[str, FieldInfo], str] | None = ..., description: str | None = ..., examples: list[Any] | None = ..., exclude: bool | None = ..., discriminator: str | Discriminator | None = ..., deprecated: deprecated | str | bool | None = ..., json_schema_extra: JsonDict | Callable[[JsonDict], None] | None = ..., frozen: bool | None = ..., validate_default: bool | None = ..., repr: bool = ..., init: bool | None = ..., init_var: bool | None = ..., kw_only: bool | None = ..., pattern: str | Pattern[str] | None = ..., strict: bool | None = ..., coerce_numbers_to_str: bool | None = ..., gt: SupportsGt | None = ..., ge: SupportsGe | None = ..., lt: SupportsLt | None = ..., le: SupportsLe | None = ..., multiple_of: float | None = ..., allow_inf_nan: bool | None = ..., max_digits: int | None = ..., decimal_places: int | None = ..., min_length: int | None = ..., max_length: int | None = ..., union_mode: Literal['smart', 'left_to_right'] = ..., fail_fast: bool | None = ...) -> _T
+app\models\api_schemas.py:392: note:     def [_T] Field(*, default_factory: Callable[[], _T] | Callable[[dict[str, Any]], _T], alias: str | None = ..., alias_priority: int | None = ..., validation_alias: str | AliasPath | AliasChoices | None = ..., serialization_alias: str | None = ..., title: str | None = ..., field_title_generator: Callable[[str, FieldInfo], str] | None = ..., description: str | None = ..., examples: list[Any] | None = ..., exclude: bool | None = ..., discriminator: str | Discriminator | None = ..., deprecated: deprecated | str | bool | None = ..., json_schema_extra: JsonDict | Callable[[JsonDict], None] | None = ..., frozen: bool | None = ..., validate_default: bool | None = ..., repr: bool = ..., init: bool | None = ..., init_var: bool | None = ..., kw_only: bool | None = ..., pattern: str | Pattern[str] | None = ..., strict: bool | None = ..., coerce_numbers_to_str: bool | None = ..., gt: SupportsGt | None = ..., ge: SupportsGe | None = ..., lt: SupportsLt | None = ..., le: SupportsLe | None = ..., multiple_of: float | None = ..., allow_inf_nan: bool | None = ..., max_digits: int | None = ..., decimal_places: int | None = ..., min_length: int | None = ..., max_length: int | None = ..., union_mode: Literal['smart', 'left_to_right'] = ..., fail_fast: bool | None = ...) -> _T
+app\models\api_schemas.py:392: note:     def Field(*, alias: str | None = ..., alias_priority: int | None = ..., validation_alias: str | AliasPath | AliasChoices | None = ..., serialization_alias: str | None = ..., title: str | None = ..., field_title_generator: Callable[[str, FieldInfo], str] | None = ..., description: str | None = ..., examples: list[Any] | None = ..., exclude: bool | None = ..., discriminator: str | Discriminator | None = ..., deprecated: deprecated | str | bool | None = ..., json_schema_extra: JsonDict | Callable[[JsonDict], None] | None = ..., frozen: bool | None = ..., validate_default: bool | None = ..., repr: bool = ..., init: bool | None = ..., init_var: bool | None = ..., kw_only: bool | None = ..., pattern: str | Pattern[str] | None = ..., strict: bool | None = ..., coerce_numbers_to_str: bool | None = ..., gt: SupportsGt | None = ..., ge: SupportsGe | None = ..., lt: SupportsLt | None = ..., le: SupportsLe | None = ..., multiple_of: float | None = ..., allow_inf_nan: bool | None = ..., max_digits: int | None = ..., decimal_places: int | None = ..., min_length: int | None = ..., max_length: int | None = ..., union_mode: Literal['smart', 'left_to_right'] = ..., fail_fast: bool | None = ...) -> Any
+app\models\api_schemas.py:458: error: No overload variant of "Field" matches argument types "EllipsisType", "int"  [call-overload]
+app\models\api_schemas.py:458: note: Possible overload variants:
+app\models\api_schemas.py:458: note:     def Field(default: EllipsisType, *, alias: str | None = ..., alias_priority: int | None = ..., validation_alias: str | AliasPath | AliasChoices | None = ..., serialization_alias: str | None = ..., title: str | None = ..., field_title_generator: Callable[[str, FieldInfo], str] | None = ..., description: str | None = ..., examples: list[Any] | None = ..., exclude: bool | None = ..., discriminator: str | Discriminator | None = ..., deprecated: deprecated | str | bool | None = ..., json_schema_extra: JsonDict | Callable[[JsonDict], None] | None = ..., frozen: bool | None = ..., validate_default: bool | None = ..., repr: bool = ..., init: bool | None = ..., init_var: bool | None = ..., kw_only: bool | None = ..., pattern: str | Pattern[str] | None = ..., strict: bool | None = ..., coerce_numbers_to_str: bool | None = ..., gt: SupportsGt | None = ..., ge: SupportsGe | None = ..., lt: SupportsLt | None = ..., le: SupportsLe | None = ..., multiple_of: float | None = ..., allow_inf_nan: bool | None = ..., max_digits: int | None = ..., decimal_places: int | None = ..., min_length: int | None = ..., max_length: int | None = ..., union_mode: Literal['smart', 'left_to_right'] = ..., fail_fast: bool | None = ...) -> Any
+app\models\api_schemas.py:458: note:     def [_T] Field(default: _T, *, alias: str | None = ..., alias_priority: int | None = ..., validation_alias: str | AliasPath | AliasChoices | None = ..., serialization_alias: str | None = ..., title: str | None = ..., field_title_generator: Callable[[str, FieldInfo], str] | None = ..., description: str | None = ..., examples: list[Any] | None = ..., exclude: bool | None = ..., discriminator: str | Discriminator | None = ..., deprecated: deprecated | str | bool | None = ..., json_schema_extra: JsonDict | Callable[[JsonDict], None] | None = ..., frozen: bool | None = ..., validate_default: bool | None = ..., repr: bool = ..., init: bool | None = ..., init_var: bool | None = ..., kw_only: bool | None = ..., pattern: str | Pattern[str] | None = ..., strict: bool | None = ..., coerce_numbers_to_str: bool | None = ..., gt: SupportsGt | None = ..., ge: SupportsGe | None = ..., lt: SupportsLt | None = ..., le: SupportsLe | None = ..., multiple_of: float | None = ..., allow_inf_nan: bool | None = ..., max_digits: int | None = ..., decimal_places: int | None = ..., min_length: int | None = ..., max_length: int | None = ..., union_mode: Literal['smart', 'left_to_right'] = ..., fail_fast: bool | None = ...) -> _T
+app\models\api_schemas.py:458: note:     def [_T] Field(*, default_factory: Callable[[], _T] | Callable[[dict[str, Any]], _T], alias: str | None = ..., alias_priority: int | None = ..., validation_alias: str | AliasPath | AliasChoices | None = ..., serialization_alias: str | None = ..., title: str | None = ..., field_title_generator: Callable[[str, FieldInfo], str] | None = ..., description: str | None = ..., examples: list[Any] | None = ..., exclude: bool | None = ..., discriminator: str | Discriminator | None = ..., deprecated: deprecated | str | bool | None = ..., json_schema_extra: JsonDict | Callable[[JsonDict], None] | None = ..., frozen: bool | None = ..., validate_default: bool | None = ..., repr: bool = ..., init: bool | None = ..., init_var: bool | None = ..., kw_only: bool | None = ..., pattern: str | Pattern[str] | None = ..., strict: bool | None = ..., coerce_numbers_to_str: bool | None = ..., gt: SupportsGt | None = ..., ge: SupportsGe | None = ..., lt: SupportsLt | None = ..., le: SupportsLe | None = ..., multiple_of: float | None = ..., allow_inf_nan: bool | None = ..., max_digits: int | None = ..., decimal_places: int | None = ..., min_length: int | None = ..., max_length: int | None = ..., union_mode: Literal['smart', 'left_to_right'] = ..., fail_fast: bool | None = ...) -> _T
+app\models\api_schemas.py:458: note:     def Field(*, alias: str | None = ..., alias_priority: int | None = ..., validation_alias: str | AliasPath | AliasChoices | None = ..., serialization_alias: str | None = ..., title: str | None = ..., field_title_generator: Callable[[str, FieldInfo], str] | None = ..., description: str | None = ..., examples: list[Any] | None = ..., exclude: bool | None = ..., discriminator: str | Discriminator | None = ..., deprecated: deprecated | str | bool | None = ..., json_schema_extra: JsonDict | Callable[[JsonDict], None] | None = ..., frozen: bool | None = ..., validate_default: bool | None = ..., repr: bool = ..., init: bool | None = ..., init_var: bool | None = ..., kw_only: bool | None = ..., pattern: str | Pattern[str] | None = ..., strict: bool | None = ..., coerce_numbers_to_str: bool | None = ..., gt: SupportsGt | None = ..., ge: SupportsGe | None = ..., lt: SupportsLt | None = ..., le: SupportsLe | None = ..., multiple_of: float | None = ..., allow_inf_nan: bool | None = ..., max_digits: int | None = ..., decimal_places: int | None = ..., min_length: int | None = ..., max_length: int | None = ..., union_mode: Literal['smart', 'left_to_right'] = ..., fail_fast: bool | None = ...) -> Any
+app\services\data_processing\enrichment.py:231: error: Need type annotation for "technologies" (hint: "technologies: list[<type>] = ...")  [var-annotated]
+app\services\data_processing\enrichment.py:562: error: Argument "key" to "max" has incompatible type overloaded function; expected "Callable[[Any], SupportsDunderLT[Any] | SupportsDunderGT[Any]]"  [arg-type]
+app\services\data_processing\enrichment.py:709: error: Need type annotation for "errors" (hint: "errors: list[<type>] = ...")  [var-annotated]
+app\services\scraper\base_scraper.py:185: error: Missing return statement  [return]
+app\services\data_processing\pipeline.py:9: error: Module "app.services.data_processing.validators" has no attribute "URLValidator"  [attr-defined]
+app\services\data_processing\pipeline.py:9: error: Module "app.services.data_processing.validators" has no attribute "DomainValidator"; maybe "EmailValidator", "DataValidator", or "PhoneValidator"?  [attr-defined]
+app\services\data_processing\pipeline.py:9: error: Module "app.services.data_processing.validators" has no attribute "LinkedInURLValidator"  [attr-defined]
+app\services\data_processing\pipeline.py:9: error: Module "app.services.data_processing.validators" has no attribute "CompanyNameValidator"  [attr-defined]
+app\services\data_processing\pipeline.py:9: error: Module "app.services.data_processing.validators" has no attribute "ContactNameValidator"  [attr-defined]
+app\services\data_processing\pipeline.py:372: error: List item 0 has incompatible type "list[dict[str, Any]]"; expected "dict[str, Any]"  [list-item]
+app\services\data_processing\pipeline.py:372: error: List item 1 has incompatible type "list[dict[str, Any]]"; expected "dict[str, Any]"  [list-item]
+app\services\data_processing\pipeline.py:411: error: "DataCleaner" has no attribute "clean_company_data"  [attr-defined]  
+app\services\data_processing\pipeline.py:427: error: "DataCleaner" has no attribute "clean_contact_data"  [attr-defined]  
+app\services\data_processing\pipeline.py:451: error: List item 0 has incompatible type "list[Any]"; expected "dict[str, Any]"  [list-item]
+app\services\data_processing\pipeline.py:451: error: List item 1 has incompatible type "list[Any]"; expected "dict[str, Any]"  [list-item]
+app\services\data_processing\pipeline.py:542: error: List item 0 has incompatible type "list[dict[str, Any]]"; expected "dict[str, Any]"  [list-item]
+app\services\data_processing\pipeline.py:542: error: List item 1 has incompatible type "list[dict[str, Any]]"; expected "dict[str, Any]"  [list-item]
+app\services\data_processing\pipeline.py:608: error: List item 0 has incompatible type "list[dict[str, Any]]"; expected "dict[str, Any]"  [list-item]
+app\services\data_processing\pipeline.py:609: error: List item 1 has incompatible type "list[dict[str, Any]]"; expected "dict[str, Any]"  [list-item]
+app\services\data_processing\pipeline.py:717: error: List item 0 has incompatible type "list[dict[str, Any]]"; expected "dict[str, Any]"  [list-item]
+app\services\data_processing\pipeline.py:717: error: List item 1 has incompatible type "list[dict[str, Any]]"; expected "dict[str, Any]"  [list-item]
+app\services\data_processing\pipeline.py:746: error: Need type annotation for "errors" (hint: "errors: list[<type>] = ...")  [var-annotated]
+app\services\data_processing\pipeline.py:778: error: List item 0 has incompatible type "list[dict[str, Any]]"; expected "dict[str, Any]"  [list-item]
+app\services\data_processing\pipeline.py:778: error: List item 1 has incompatible type "list[dict[str, Any]]"; expected "dict[str, Any]"  [list-item]
+app\services\data_processing\pipeline.py:899: error: Incompatible return value type (got "tuple[dict[str, Any], dict[str, Any]]", expected "tuple[list[dict[str, Any]], list[dict[str, Any]]]")  [return-value]
+app\services\scraper\website_scraper.py:26: error: Need type annotation for "visited_urls" (hint: "visited_urls: set[<type>] = ...")  [var-annotated]
+app\services\scraper\website_scraper.py:30: error: "type[ScrapingSource]" has no attribute "WEBSITE"  [attr-defined]      
+app\services\scraper\website_scraper.py:86: error: "WebsiteScraper" has no attribute "_can_fetch"  [attr-defined]
+app\services\scraper\website_scraper.py:232: error: Item "NavigableString" of "Tag | NavigableString" has no attribute "get"  [union-attr]
+app\services\scraper\website_scraper.py:233: error: Item "list[str]" of "str | list[str]" has no attribute "strip"  [union-attr]
+app\services\scraper\website_scraper.py:233: error: Invalid index type "str" for "NavigableString"; expected type "SupportsIndex | slice[Any, Any, Any]"  [index]
+app\services\scraper\website_scraper.py:262: error: Unexpected keyword argument "source" for "ContactCreate"  [call-arg]  
+app\services\scraper\website_scraper.py:276: error: Unexpected keyword argument "source" for "ContactCreate"  [call-arg]  
+app\services\scraper\website_scraper.py:290: error: Need type annotation for "contact_sections" (hint: "contact_sections: list[<type>] = ...")  [var-annotated]
+app\services\scraper\website_scraper.py:431: error: Incompatible types in assignment (expression has type "dict[str, str]", target has type "str")  [assignment]
+app\services\scraper\website_scraper.py:519: error: Unexpected keyword argument "phone" for "CompanyCreate"  [call-arg]   
+app\services\scraper\website_scraper.py:519: error: Unexpected keyword argument "address" for "CompanyCreate"  [call-arg] 
+app\services\scraper\website_scraper.py:519: error: Unexpected keyword argument "source" for "CompanyCreate"  [call-arg]  
+app\services\scraper\website_scraper.py:519: error: Unexpected keyword argument "source_url" for "CompanyCreate"  [call-arg]
+app\services\scraper\website_scraper.py:522: error: Argument "website" to "CompanyCreate" has incompatible type "str"; expected "HttpUrl | None"  [arg-type]
+app\services\scraper\linkedin_scraper.py:41: error: Incompatible types in assignment (expression has type "dict[str, str]", variable has type "None")  [assignment]
+app\services\scraper\linkedin_scraper.py:114: error: Value of type "None" is not indexable  [index]
+app\services\scraper\linkedin_scraper.py:119: error: Value of type "None" is not indexable  [index]
+app\services\scraper\linkedin_scraper.py:146: error: Need type annotation for "companies" (hint: "companies: list[<type>] = ...")  [var-annotated]
+app\services\scraper\linkedin_scraper.py:210: error: Need type annotation for "contacts" (hint: "contacts: list[<type>] = ...")  [var-annotated]
+app\services\scraper\linkedin_scraper.py:414: error: Unexpected keyword argument "address" for "CompanyCreate"  [call-arg]
+app\services\scraper\linkedin_scraper.py:414: error: Unexpected keyword argument "linkedin_url" for "CompanyCreate"  [call-arg]
+app\services\scraper\linkedin_scraper.py:414: error: Unexpected keyword argument "source" for "CompanyCreate"  [call-arg] 
+app\services\scraper\linkedin_scraper.py:414: error: Unexpected keyword argument "source_url" for "CompanyCreate"  [call-arg]
+app\services\scraper\linkedin_scraper.py:417: error: Argument "website" to "CompanyCreate" has incompatible type "str"; expected "HttpUrl | None"  [arg-type]
+app\services\scraper\linkedin_scraper.py:436: error: Unexpected keyword argument "company" for "ContactCreate"; did you mean "company_id"?  [call-arg]
+app\services\scraper\linkedin_scraper.py:436: error: Unexpected keyword argument "source" for "ContactCreate"  [call-arg] 
+app\services\scraper\linkedin_scraper.py:496: error: Incompatible types in assignment (expression has type "str | None", target has type "str")  [assignment]
+app\services\scraper\google_scraper.py:84: error: Need type annotation for "maps_results" (hint: "maps_results: list[<type>] = ...")  [var-annotated]
+app\services\scraper\google_scraper.py:342: error: Unexpected keyword argument "phone" for "CompanyCreate"  [call-arg]    
+app\services\scraper\google_scraper.py:342: error: Unexpected keyword argument "address" for "CompanyCreate"  [call-arg]  
+app\services\scraper\google_scraper.py:342: error: Unexpected keyword argument "source" for "CompanyCreate"  [call-arg]   
+app\services\scraper\google_scraper.py:342: error: Unexpected keyword argument "source_url" for "CompanyCreate"  [call-arg]
+app\services\scraper\google_scraper.py:372: error: Unexpected keyword argument "phone" for "CompanyCreate"  [call-arg]    
+app\services\scraper\google_scraper.py:372: error: Unexpected keyword argument "source" for "CompanyCreate"  [call-arg]   
+app\services\scraper\google_scraper.py:372: error: Unexpected keyword argument "source_url" for "CompanyCreate"  [call-arg]
+app\services\scraper\google_scraper.py:394: error: Unexpected keyword argument "source" for "ContactCreate"  [call-arg]   
+app\services\data_processing\__init__.py:12: error: Cannot find implementation or library stub for module named "app.services.data_processing.data_processor"  [import-not-found]      
+app\services\data_processing\__init__.py:12: note: See https://mypy.readthedocs.io/en/stable/running_mypy.html#missing-imports
+app\services\data_processing\__init__.py:15: error: Module "app.services.data_processing.deduplication" has no attribute "DeduplicationEngine"  [attr-defined]
+app\services\data_processing\__init__.py:18: error: Module "app.services.data_processing.pipeline" has no attribute "ProcessingPipeline"; maybe "DataProcessingPipeline"?  [attr-defined]
+app\services\data_processing\__init__.py:18: error: Module "app.services.data_processing.pipeline" has no attribute "PipelineConfig"  [attr-defined]
+app\services\data_processing\__init__.py:18: error: Module "app.services.data_processing.pipeline" has no attribute "ProcessingResult"  [attr-defined]
+app\models\database.py:20: error: Variable "app.models.database.Base" is not valid as a type  [valid-type]
+app\models\database.py:20: note: See https://mypy.readthedocs.io/en/stable/common_issues.html#variables-vs-type-aliases   
+app\models\database.py:20: error: Invalid base class "Base"  [misc]
+app\models\database.py:49: error: Need type annotation for "data_quality_score"  [var-annotated]
+app\models\database.py:50: error: Need type annotation for "lead_score"  [var-annotated]
+app\models\database.py:67: error: Variable "app.models.database.Base" is not valid as a type  [valid-type]
+app\models\database.py:67: note: See https://mypy.readthedocs.io/en/stable/common_issues.html#variables-vs-type-aliases   
+app\models\database.py:67: error: Invalid base class "Base"  [misc]
+app\models\database.py:95: error: Need type annotation for "contact_quality_score"  [var-annotated]
+app\models\database.py:96: error: Need type annotation for "engagement_potential"  [var-annotated]
+app\models\database.py:114: error: Variable "app.models.database.Base" is not valid as a type  [valid-type]
+app\models\database.py:114: note: See https://mypy.readthedocs.io/en/stable/common_issues.html#variables-vs-type-aliases  
+app\models\database.py:114: error: Invalid base class "Base" 
+ [misc]
+app\models\database.py:128: error: Need type annotation for "progress_percentage"  [var-annotated]
+app\models\database.py:159: error: Variable "app.models.database.Base" is not valid as a type  [valid-type]
+app\models\database.py:159: note: See https://mypy.readthedocs.io/en/stable/common_issues.html#variables-vs-type-aliases  
+app\models\database.py:159: error: Invalid base class "Base" 
+ [misc]
+app\models\database.py:180: error: Need type annotation for "extraction_confidence"  [var-annotated]
+app\models\database.py:181: error: Need type annotation for "data_completeness"  [var-annotated]
+app\models\database.py:207: error: Variable "app.models.database.Base" is not valid as a type  [valid-type]
+app\models\database.py:207: note: See https://mypy.readthedocs.io/en/stable/common_issues.html#variables-vs-type-aliases  
+app\models\database.py:207: error: Invalid base class "Base" 
+ [misc]
+app\models\database.py:238: error: Variable "app.models.database.Base" is not valid as a type  [valid-type]
+app\models\database.py:238: note: See https://mypy.readthedocs.io/en/stable/common_issues.html#variables-vs-type-aliases  
+app\models\database.py:238: error: Invalid base class "Base" 
+ [misc]
+app\models\database.py:259: error: Variable "app.models.database.Base" is not valid as a type  [valid-type]
+app\models\database.py:259: note: See https://mypy.readthedocs.io/en/stable/common_issues.html#variables-vs-type-aliases  
+app\models\database.py:259: error: Invalid base class "Base" 
+ [misc]
+app\models\database.py:266: error: Need type annotation for "metric_value"  [var-annotated]
+app\models\database.py:275: error: Variable "app.models.database.Base" is not valid as a type  [valid-type]
+app\models\database.py:275: note: See https://mypy.readthedocs.io/en/stable/common_issues.html#variables-vs-type-aliases  
+app\models\database.py:275: error: Invalid base class "Base" 
+ [misc]
+app\services\scraper\scraper_factory.py:29: note: By default the bodies of untyped functions are not checked, consider using --check-untyped-defs  [annotation-unchecked]
+app\services\scraper\scraper_factory.py:34: note: By default the bodies of untyped functions are not checked, consider using --check-untyped-defs  [annotation-unchecked]
+app\services\scraper\scraper_factory.py:35: note: By default the bodies of untyped functions are not checked, consider using --check-untyped-defs  [annotation-unchecked]
+app\services\scraper\scraper_factory.py:36: note: By default the bodies of untyped functions are not checked, consider using --check-untyped-defs  [annotation-unchecked]
+app\services\scraper\scraper_factory.py:88: error: "BaseScraper" has no attribute "set_rate_limiter"  [attr-defined]      
+app\services\scraper\scraper_factory.py:91: error: "BaseScraper" has no attribute "set_proxy_manager"  [attr-defined]     
+app\services\scraper\scraper_factory.py:288: error: Argument "user_agent" to "ScrapingConfig" has incompatible type "str | None"; expected "str"  [arg-type]
+app\services\scraper\scraper_factory.py:308: error: Unexpected keyword argument "requests_per_minute" for "AdaptiveRateLimiter"  [call-arg]
+app\services\scraper\rate_limiter.py:222: note: "AdaptiveRateLimiter" defined here
+app\services\scraper\scraper_factory.py:308: error: Unexpected keyword argument "requests_per_hour" for "AdaptiveRateLimiter"  [call-arg]
+app\services\scraper\rate_limiter.py:222: note: "AdaptiveRateLimiter" defined here
+app\services\scraper\scraper_factory.py:313: error: Unexpected keyword argument "requests_per_minute" for "RateLimiter"  [call-arg]
+app\services\scraper\rate_limiter.py:25: note: "RateLimiter" defined here
+app\services\scraper\scraper_factory.py:313: error: Unexpected keyword argument "requests_per_hour" for "RateLimiter"  [call-arg]
+app\services\scraper\rate_limiter.py:25: note: "RateLimiter" defined here
+app\services\scraper\scraper_factory.py:331: error: Unexpected keyword argument "proxy_list" for "ProxyManager"  [call-arg]
+app\services\scraper\proxy_manager.py:189: note: "ProxyManager" defined here
+app\services\scraper\scraper_factory.py:331: error: Unexpected keyword argument "rotation_strategy" for "ProxyManager"  [call-arg]
+app\services\scraper\proxy_manager.py:189: note: "ProxyManager" defined here
+app\services\scraper\scraper_manager.py:254: error: "type[ScrapingStatus]" has no attribute "CANCELLED"  [attr-defined]   
+app\services\scraper\scraper_manager.py:313: error: Unsupported target for indexed assignment ("object")  [index]
+app\services\scraper\scraper_manager.py:316: error: Value of type "object" is not indexable  [index]
+app\services\scraper\scraper_manager.py:316: error: Unsupported target for indexed assignment ("object")  [index]
+app\services\scraper\scraper_manager.py:361: error: "BaseScraper" has no attribute "set_progress_callback"  [attr-defined]
+app\services\scraper\scraper_manager.py:395: error: "type[ScrapingStatus]" has no attribute "CANCELLED"  [attr-defined]   
+app\services\scraper\__init__.py:12: error: Cannot find implementation or library stub for module named "app.services.scraper.directory_scraper"  [import-not-found]
+app\services\scraper\__init__.py:13: error: Module "app.services.scraper.scraper_factory" has no attribute "get_scraper_factory"; maybe "scraper_factory"?  [attr-defined]
+app\core\database.py:9: note: By default the bodies of untyped functions are not checked, consider using --check-untyped-defs  [annotation-unchecked]
+app\services\supabase_service.py:11: error: Module "app.models.schemas" has no attribute "UserActivityCreate"  [attr-defined]
+app\services\supabase_service.py:11: error: Module "app.models.schemas" has no attribute "UserActivityResponse"  [attr-defined]
+app\services\supabase_service.py:11: error: Module "app.models.schemas" has no attribute "SystemMetricsCreate"  [attr-defined]
+app\services\supabase_service.py:11: error: Module "app.models.schemas" has no attribute "SystemMetricsResponse"  [attr-defined]
+app\services\supabase_service.py:11: error: Module "app.models.schemas" has no attribute "APIKeyCreate"  [attr-defined]   
+app\services\supabase_service.py:11: error: Module "app.models.schemas" has no attribute "APIKeyUpdate"  [attr-defined]   
+app\services\supabase_service.py:11: error: Module "app.models.schemas" has no attribute "APIKeyResponse"  [attr-defined] 
+app\services\supabase_service.py:113: error: "PaginationParams" has no attribute "page_size"  [attr-defined]
+app\services\supabase_service.py:114: error: "PaginationParams" has no attribute "page_size"  [attr-defined]
+app\services\supabase_service.py:117: error: Missing return statement  [return]
+app\services\supabase_service.py:131: error: Missing return statement  [return]
+app\services\supabase_service.py:141: error: Missing return statement  [return]
+app\services\supabase_service.py:174: error: Missing return statement  [return]
+app\services\supabase_service.py:189: error: Missing return statement  [return]
+app\services\supabase_service.py:197: error: Missing return statement  [return]
+app\services\supabase_service.py:205: error: Missing return statement  [return]
+app\services\supabase_service.py:261: error: Missing return statement  [return]
+app\services\supabase_service.py:360: error: Missing return statement  [return]
+app\services\supabase_service.py:499: error: Unexpected keyword argument "page_size" for "PaginationParams"  [call-arg]   
+app\services\supabase_service.py:601: error: Incompatible types in assignment (expression has type "dict[str, str]", target has type "str")  [assignment]
+app\services\supabase_service.py:604: error: Incompatible types in assignment (expression has type "dict[Never, Never]", target has type "str")  [assignment]
+app\services\supabase_service.py:605: error: Unsupported target for indexed assignment ("str")  [index]
+Found 136 errors in 14 files (checked 39 source files)

@@ -6,7 +6,7 @@ If i use and working on Next.js project please use the following commands:
 
 if i use and working on python project
     - always use venv
-    - please check the error if you done with
+    - please check the error if you done with the task or every chat
     # 1. Type checking (WAJIB untuk FastAPI)
         mypy .
 

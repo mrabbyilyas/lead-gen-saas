@@ -13,18 +13,18 @@ async def lifespan(app: FastAPI):
     """Application lifespan events"""
     # Startup
     print("🚀 Starting Lead Generation SaaS Backend...")
-    
+
     # Test Supabase connection
     try:
         # Simple test query to verify connection
-        response = supabase_client.table("test").select("*").limit(1).execute()
+        supabase_client.table("test").select("*").limit(1).execute()
         print("✅ Supabase connection successful")
     except Exception as e:
         print(f"⚠️ Supabase connection test failed: {e}")
         print("📝 Note: This is expected if tables don't exist yet")
-    
+
     yield
-    
+
     # Shutdown
     print("🛑 Shutting down Lead Generation SaaS Backend...")
 
@@ -33,7 +33,7 @@ app = FastAPI(
     title="Lead Generation SaaS Backend",
     description="A comprehensive lead generation system with web scraping and analytics",
     version="1.0.0",
-    lifespan=lifespan
+    lifespan=lifespan,
 )
 
 # CORS middleware
@@ -56,7 +56,7 @@ async def root():
         "message": "Lead Generation SaaS Backend API",
         "version": "1.0.0",
         "status": "running",
-        "docs": "/docs"
+        "docs": "/docs",
     }
 
 
@@ -66,14 +66,9 @@ async def health_check():
     return {
         "status": "healthy",
         "environment": settings.ENVIRONMENT,
-        "debug": settings.DEBUG
+        "debug": settings.DEBUG,
     }
 
 
 if __name__ == "__main__":
-    uvicorn.run(
-        "main:app",
-        host="0.0.0.0",
-        port=8000,
-        reload=settings.DEBUG
-    )
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=settings.DEBUG)

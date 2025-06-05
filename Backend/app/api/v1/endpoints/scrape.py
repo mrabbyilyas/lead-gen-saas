@@ -11,7 +11,7 @@ async def start_scraping(scrape_request: Dict[str, Any]):
     return {
         "message": "Scraping endpoint - to be implemented",
         "job_id": "placeholder",
-        "status": "pending"
+        "status": "pending",
     }
 
 
@@ -19,8 +19,4 @@ async def start_scraping(scrape_request: Dict[str, Any]):
 async def get_scraping_status(job_id: str):
     """Get status of a scraping job"""
     # TODO: Implement status checking
-    return {
-        "job_id": job_id,
-        "status": "placeholder",
-        "progress": 0
-    }
+    return {"job_id": job_id, "status": "placeholder", "progress": 0}

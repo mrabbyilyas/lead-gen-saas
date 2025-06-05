@@ -12,7 +12,7 @@ from .supabase_service import (
     APIKeyService,
     DatabaseError,
     NotFoundError,
-    ValidationError
+    ValidationError,
 )
 
 from .service_factory import (
@@ -25,13 +25,10 @@ from .service_factory import (
     get_data_export_service,
     get_user_activity_service,
     get_system_metrics_service,
-    get_api_key_service
+    get_api_key_service,
 )
 
-from .database_utils import (
-    DatabaseUtils,
-    get_database_utils
-)
+from .database_utils import DatabaseUtils, get_database_utils
 
 __all__ = [
     # Base service classes
@@ -44,12 +41,10 @@ __all__ = [
     "UserActivityService",
     "SystemMetricsService",
     "APIKeyService",
-    
     # Exceptions
     "DatabaseError",
     "NotFoundError",
     "ValidationError",
-    
     # Service factory
     "ServiceFactory",
     "get_service_factory",
@@ -61,8 +56,7 @@ __all__ = [
     "get_user_activity_service",
     "get_system_metrics_service",
     "get_api_key_service",
-    
     # Database utilities
     "DatabaseUtils",
-    "get_database_utils"
+    "get_database_utils",
 ]
