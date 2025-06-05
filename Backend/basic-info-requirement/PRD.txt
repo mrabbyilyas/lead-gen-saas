@@ -1,0 +1,761 @@
+1. Introduction
+This document outlines the product requirements for the Lead Generation Application, a backend system designed to automate the process of finding, qualifying, and managing sales leads. The primary interface for this application will be a RESTful API. This PRD details the application's purpose, features, target audience, and technical specifications to guide the development process.
+
+2. Product overview
+The Lead Generation Application is a powerful tool designed to streamline and enhance the lead generation efforts of sales and marketing teams. By leveraging automated web scraping, data processing, and intelligent scoring, the application aims to deliver high-quality, actionable leads. It allows users to initiate targeted searches, track the progress of these searches in real-time, retrieve detailed information about potential leads (including company data, contact persons, and business intelligence), and export this data for use in CRM systems or other sales tools. The system is built with a focus on providing comprehensive data, actionable insights, and a robust API for integration.
+
+3. Goals and objectives
+The primary goal of the Lead Generation Application is to provide an efficient, reliable, and automated platform for generating high-quality sales leads.
+
+Objectives:
+
+Automation: To automate the time-consuming process of searching for and collecting information about potential business leads from various online sources.
+
+Data Quality: To provide enriched and validated data, ensuring leads are relevant and actionable.
+
+Intelligent Scoring: To implement a lead scoring mechanism that helps users prioritize leads based on their potential value.
+
+Comprehensive Insights: To offer detailed business intelligence, including company technology stacks, growth signals, and potential pain points.
+
+Integration: To provide a robust and well-documented API that allows for easy integration with other systems (e.g., CRMs, sales automation tools).
+
+Scalability & Performance: To build a system that can handle a growing number of search requests and data volume efficiently.
+
+User Control: To give users control over their search criteria, filtering options, and data export formats.
+
+4. Target audience
+The primary target audience for the Lead Generation Application includes:
+
+Sales Teams: Sales representatives and managers looking for qualified leads to fill their sales pipeline.
+
+Marketing Professionals: Marketers aiming to identify target accounts for campaigns and outreach.
+
+Business Development Representatives (BDRs): BDRs focused on prospecting and qualifying new business opportunities.
+
+Lead Generation Agencies: Agencies that provide lead generation services to other businesses.
+
+Startups and SMEs: Small to medium-sized enterprises seeking cost-effective ways to identify potential customers.
+
+These users require a reliable way to find accurate and detailed information about potential leads to improve their outreach effectiveness and conversion rates.
+
+5. Features and requirements
+This section outlines the functional requirements of the Lead Generation Application, derived from the provided context.
+
+5.1. Lead search initiation
+FR1.1 Initiate Asynchronous Search: Users (via API) must be able to initiate an asynchronous lead search by providing criteria such as industry, location, company size, and max results. (Source: api_examples.md - Endpoint 1; backend_requirements.md - POST /api/v1/scrape/search)
+
+FR1.2 Advanced Search Filtering: The search initiation must support advanced filters, including but not limited to has_website, min_employees, and technologies. (Source: api_examples.md - Endpoint 1 Request Body)
+
+FR1.3 Job Creation and Confirmation: Upon search initiation, the system shall create a background job and return a unique job_id, initial status (e.g., "initiated"), search criteria, and an estimated completion time/duration. (Source: api_examples.md - Endpoint 1 Response)
+
+5.2. Job status tracking
+FR2.1 Retrieve Job Status: Users (via API) must be able to check the status of an ongoing or completed search job using its job_id. (Source: api_examples.md - Endpoint 2; backend_requirements.md - GET /api/v1/scrape/status/{job_id})
+
+FR2.2 Detailed Progress Reporting: The job status response must include:
+
+Current status (e.g., "running", "completed", "failed")
+
+Progress percentage
+
+Current processing step
+
+Count of results found
+
+Number of items processed/remaining
+
+Any errors encountered during the job, with details like company and error message.
+
+Performance metrics like companies processed per minute and success rate. (Source: api_examples.md - Endpoint 2 Response)
+
+FR2.3 Job Completion Summary: For completed jobs, the status response must provide a summary including total processed items, successful items, failed items, categorized lead quality counts (e.g., high/medium quality), and total processing time. (Source: api_examples.md - Endpoint 2 Response (Completed))
+
+FR2.4 Real-time WebSocket Updates: The system must provide real-time updates on job progress via WebSockets for a given job_id, pushing messages for events like:
+
+Job progress changes (e.g., job_progress type)
+
+Lead discovery events (e.g., lead_discovered type)
+
+Job completion (e.g., job_completed type). (Source: api_examples.md - Endpoint 7; backend_requirements.md - app/api/v1/realtime.py)
+
+5.3. Lead data retrieval
+FR3.1 Retrieve Processed Leads: Users (via API) must be able to retrieve processed leads, typically associated with a job_id. (Source: api_examples.md - Endpoint 3; backend_requirements.md - GET /api/v1/leads)
+
+FR3.2 Filtering Retrieved Leads: Lead retrieval must support filtering by criteria such as minimum lead_score. (Source: api_examples.md - Endpoint 3 Request)
+
+FR3.3 Pagination for Leads: The API must support pagination (e.g., limit, offset, current_page, total_pages, has_next, has_prev) for lead results. (Source: api_examples.md - Endpoint 3 Response)
+
+FR3.4 Core Lead Data: Each lead record must include:
+
+Company details: name, industry, size category, website, description, location (address, city, state, country, coordinates), founded year, employee count.
+
+Lead score.
+
+Count of contacts and verified contacts.
+
+Last updated timestamp. (Source: api_examples.md - Endpoint 3 Response)
+
+FR3.5 Lead Score Breakdown: Each lead must have a detailed score_breakdown showing scores for categories like contact completeness, business indicators, data quality, and engagement potential. (Source: api_examples.md - Endpoint 3 & 4 Response)
+
+5.4. Detailed lead information
+FR4.1 Retrieve Specific Lead Details: Users (via API) must be able to retrieve detailed information for a specific lead using its unique lead_id. (Source: api_examples.md - Endpoint 4; backend_requirements.md - GET /api/v1/leads/{lead_id})
+
+FR4.2 Comprehensive Company Information: The detailed view must provide expanded company information, including business info (e.g., revenue estimate, business model, target market, timezone). (Source: api_examples.md - Endpoint 4 Response)
+
+FR4.3 Associated Contact Details: The detailed view must list associated contacts with their name, title, email, phone, LinkedIn URL, decision-maker status, confidence score, source, and verification status. (Source: api_examples.md - Endpoint 4 Response)
+
+FR4.4 Business Intelligence Data: The detailed view must include business intelligence insights:
+
+Growth Signals: (e.g., hiring, funding, expansion with descriptions and confidence)
+
+Technology Stack: (categorized: frontend, backend, database, cloud, analytics, marketing)
+
+Pain Points: (identified category, description, source, confidence)
+
+Competitive Landscape: (e.g., competitor name, relationship, market position). (Source: api_examples.md - Endpoint 4 Response)
+
+FR4.5 Engagement Opportunities: The system may suggest potential engagement opportunities with type, description, priority, and suggested approach. (Source: api_examples.md - Endpoint 4 Response)
+
+FR4.6 Data Source Information: The detailed view must list data sources used for the lead, including source name, URL, scraped timestamp, and data types obtained. (Source: api_examples.md - Endpoint 4 Response)
+
+5.5. Data export
+FR5.1 Export Leads to CSV: Users (via API) must be able to export leads to a CSV file. (Source: api_examples.md - Endpoint 5; backend_requirements.md - GET /api/v1/export/csv, csv_exporter.py)
+
+FR5.2 Selective Field Export (CSV): The CSV export functionality must allow users to specify which fields to include (e.g., company_name, contact_email, lead_score). (Source: api_examples.md - Endpoint 5 Request)
+
+FR5.3 Filtered Export (CSV): The CSV export should allow filtering of leads to be exported, for example, by job_id and score_min. (Source: api_examples.md - Endpoint 5 Request)
+
+5.6. Analytics and insights
+FR6.1 Retrieve Analytics Summary: Users (via API) must be able to retrieve an analytics summary, potentially filtered by job_id. (Source: api_examples.md - Endpoint 6)
+
+FR6.2 Job Summary Analytics: The summary must include job-specific metrics like total leads, processing time, and success rate. (Source: api_examples.md - Endpoint 6 Response)
+
+FR6.3 Lead Quality Distribution Analytics: Analytics must include a distribution of leads by quality/score categories (e.g., hot, warm, cold leads with counts, percentages, and score ranges). (Source: api_examples.md - Endpoint 6 Response)
+
+FR6.4 Contact Data Analytics: Analytics must provide insights into contact data, such as total contacts, verified contacts, decision-makers, and verification rates for email/phone. (Source: api_examples.md - Endpoint 6 Response)
+
+FR6.5 Industry and Company Size Analytics: Analytics must show a breakdown of leads by industry and company size distribution. (Source: api_examples.md - Endpoint 6 Response)
+
+FR6.6 Technology Trends Analytics: Analytics should highlight technology trends, including most common and emerging technologies found in leads. (Source: api_examples.md - Endpoint 6 Response)
+
+FR6.7 Engagement Opportunities Analytics: Analytics should summarize engagement opportunities by priority. (Source: api_examples.md - Endpoint 6 Response)
+
+5.7. System administration & health
+FR7.1 System Health Check: The API must provide a health check endpoint (e.g., /api/v1/health). (Source: api_examples.md - Endpoint 9; backend_requirements.md - app/api/v1/health.py)
+
+FR7.2 Health Check Details: The health check response must report the overall system status (e.g., "healthy"), API version, environment, and status of dependent services (e.g., database, scraping engine, real-time services) including their response times or queue lengths. It should also include system performance metrics like uptime and average response time. (Source: api_examples.md - Endpoint 9 Response)
+
+5.8. Data management (backend processes)
+FR8.1 Configurable Data Scraping: The system must scrape data from multiple sources as defined (e.g., Google My Business, LinkedIn Company Pages, Company Websites, Business Directories). (Source: backend_requirements.md - Section 1.1, 1.2)
+
+FR8.2 Scraping Ethics and Rate Limiting: Scraping processes must adhere to defined constraints like requests per minute, concurrent requests, user-agent rotation, respecting robots.txt, and request delays. (Source: backend_requirements.md - Section 1.1)
+
+FR8.3 Data Validation and Cleaning: Scraped data must undergo validation (e.g., format, domain checks for email; format standardization for phone; URL validity for websites) and cleaning according to defined rules. (Source: backend_requirements.md - Section 2.1)
+
+FR8.4 Data Enrichment: The system must enrich data, for instance, by estimating company size, classifying industry (using NLP if specified), and detecting technology stacks from websites. (Source: backend_requirements.md - Section 2.2)
+
+FR8.5 Lead Scoring Algorithm Implementation: A defined lead scoring algorithm with weighted criteria (e.g., contact completeness, business indicators, data quality, engagement potential) must be implemented to calculate lead scores. (Source: backend_requirements.md - Section 3.1)
+
+FR8.6 Business Intelligence Generation: The backend must process data to generate business intelligence insights, including detecting growth signals and identifying potential pain points. (Source: backend_requirements.md - Section 3.2)
+
+FR8.7 Data Deduplication: The system must implement a strategy for company and contact matching to identify and handle duplicate records, potentially using fuzzy matching and defined merge strategies. (Source: backend_requirements.md - Section 4.2)
+
+FR8.8 Persistent Data Storage: All job information, raw scraped data, processed data, company profiles, contact information, and lead scores must be stored persistently in a database (Supabase/PostgreSQL is indicated). (Source: backend_requirements.md - Section 4, Supabase Database Setup)
+
+FR8.9 Background Job Processing: Scraping and data processing tasks must be handled by background workers. (Source: backend_requirements.md - app/workers/, Technology Stack: Celery + Redis)
+
+5.9. API design & error handling
+FR9.1 RESTful API Design: The API should follow RESTful design principles. (Source: api_examples.md - "API Features Summary")
+
+FR9.2 Standardized Error Responses: The API must return standardized error responses for issues like validation errors (with field-specific details), job not found, and rate limit exceeded (with retry_after indication). (Source: api_examples.md - Endpoint 8)
+
+FR9.3 Data Validation for Inputs: All API inputs must be validated, and clear error messages provided for invalid inputs. (Source: api_examples.md - Validation Error example; backend_requirements.md - Technology Stack: Pydantic)
+
+FR9.4 Rate Limiting: The API must implement rate limiting to prevent abuse. (Source: api_examples.md - Rate Limit Exceeded example; backend_requirements.md - app/utils/rate_limiter.py)
+
+6. User stories and acceptance criteria
+6.1. Lead search initiation
+ST-101: Initiate a basic lead search
+
+As an API user,
+
+I want to initiate an asynchronous lead search by providing industry, location, company size, and max results,
+
+So that I can start the lead generation process for a specific market segment.
+
+Acceptance Criteria:
+
+Given the API user provides valid 'industry', 'location', 'company_size', and 'max_results' parameters.
+
+When a POST request is made to /api/v1/scrape/search.
+
+Then the system should respond with a 200 OK status.
+
+And the response body should contain a unique job_id, status as "initiated", the echoed search_criteria, and an estimated_completion timestamp or duration.
+
+And a background job for lead scraping based on the criteria should be created.
+
+ST-102: Initiate a lead search with advanced filters
+
+As an API user,
+
+I want to initiate a lead search with advanced filters like has_website, min_employees, and technologies in addition to basic criteria,
+
+So that I can further refine my lead generation to match more specific company profiles.
+
+Acceptance Criteria:
+
+Given the API user provides valid basic criteria and valid advanced filter parameters (e.g., filters: {"has_website": true, "min_employees": 10, "technologies": ["React"]}).
+
+When a POST request is made to /api/v1/scrape/search.
+
+Then the system should respond with a 200 OK status.
+
+And the response body should include the job_id, status, echoed search_criteria (including filters), and estimated_completion.
+
+And the background job should use these advanced filters during scraping.
+
+ST-103: Initiate a lead search with invalid parameters
+
+As an API user,
+
+I want to receive a clear error message if I attempt to initiate a lead search with missing required parameters or invalid data types,
+
+So that I can correct my request and try again.
+
+Acceptance Criteria:
+
+Given the API user omits a required parameter (e.g., 'industry') or provides an invalid data type (e.g., 'max_results' as a string).
+
+When a POST request is made to /api/v1/scrape/search.
+
+Then the system should respond with a 4xx client error status (e.g., 400 Bad Request or 422 Unprocessable Entity).
+
+And the response body should contain a detailed error message indicating which field(s) are invalid and why (as per FR9.2).
+
+6.2. Job status tracking
+ST-201: Check status of an in-progress job
+
+As an API user,
+
+I want to retrieve the current status of an ongoing lead search job using its job_id,
+
+So that I can monitor its progress.
+
+Acceptance Criteria:
+
+Given a valid job_id for an in-progress job.
+
+When a GET request is made to /api/v1/scrape/status/{job_id}.
+
+Then the system should respond with a 200 OK status.
+
+And the response body should include the job_id, status (e.g., "running"), progress percentage, current_step, results_count, processed_count, remaining_count, any errors encountered so far, and performance metrics.
+
+ST-202: Check status of a completed job
+
+As an API user,
+
+I want to retrieve the final status and summary of a completed lead search job using its job_id,
+
+So that I know the search is finished and can see the outcome.
+
+Acceptance Criteria:
+
+Given a valid job_id for a completed job.
+
+When a GET request is made to /api/v1/scrape/status/{job_id}.
+
+Then the system should respond with a 200 OK status.
+
+And the response body should include the job_id, status as "completed", progress as 100, results_count, a processing_summary (total processed, successful, failed, lead quality counts), quality_metrics, and completed_at timestamp.
+
+ST-203: Check status of a failed job
+
+As an API user,
+
+I want to retrieve the status of a failed lead search job using its job_id,
+
+So that I can understand why it failed and see any error details.
+
+Acceptance Criteria:
+
+Given a valid job_id for a job that has failed.
+
+When a GET request is made to /api/v1/scrape/status/{job_id}.
+
+Then the system should respond with a 200 OK status.
+
+And the response body should include the job_id, status as "failed", and details about the errors that caused the failure.
+
+ST-204: Check status with an invalid job ID
+
+As an API user,
+
+I want to receive an error message if I try to check the status of a job using a non-existent job_id,
+
+So that I know the job ID is incorrect.
+
+Acceptance Criteria:
+
+Given an invalid or non-existent job_id.
+
+When a GET request is made to /api/v1/scrape/status/{job_id}.
+
+Then the system should respond with a 404 Not Found status.
+
+And the response body should contain an error message indicating "Job not found" (as per FR9.2).
+
+ST-205: Receive real-time job progress updates via WebSocket
+
+As an API user,
+
+I want to connect to a WebSocket endpoint for a specific job_id and receive real-time updates on its progress,
+
+So that I can have live monitoring without polling.
+
+Acceptance Criteria:
+
+Given a valid job_id.
+
+When the API user establishes a WebSocket connection to wss://your-api.railway.app/api/v1/ws/jobs/{job_id}.
+
+Then the connection should be accepted.
+
+And as the job progresses, the system should send JSON messages of type job_progress containing progress, current_step, results_count, and a message.
+
+And when a lead is discovered, the system should send a JSON message of type lead_discovered with company_name, lead_score, etc.
+
+And when the job completes, the system should send a JSON message of type job_completed with a summary.
+
+6.3. Lead data retrieval
+ST-301: Retrieve a list of processed leads for a job
+
+As an API user,
+
+I want to retrieve a paginated list of processed leads associated with a specific job_id,
+
+So that I can access the generated lead data.
+
+Acceptance Criteria:
+
+Given a valid job_id for which lead processing is complete.
+
+When a GET request is made to /api/v1/leads with the job_id parameter.
+
+Then the system should respond with a 200 OK status.
+
+And the response body should contain a list of leads with core lead data (FR3.4), and pagination information.
+
+ST-302: Filter retrieved leads by minimum lead score
+
+As an API user,
+
+I want to filter the retrieved leads by a minimum lead_score when fetching leads for a job,
+
+So that I can focus on higher-quality leads.
+
+Acceptance Criteria:
+
+Given a valid job_id and a score_min parameter (e.g., 60).
+
+When a GET request is made to /api/v1/leads with job_id and score_min.
+
+Then the system should respond with a 200 OK status.
+
+And the leads array in the response should only contain leads with a lead_score greater than or equal to score_min.
+
+And the filters_applied section in the response should reflect the score_min filter.
+
+ST-303: Navigate through paginated lead results
+
+As an API user,
+
+I want to use limit and offset parameters to navigate through pages of lead results,
+
+So that I can efficiently process large sets of leads.
+
+Acceptance Criteria:
+
+Given a job_id with a large number of leads.
+
+When GET requests are made to /api/v1/leads with varying limit and offset parameters.
+
+Then the system should return the correct subset of leads for each page.
+
+And the pagination object in the response (total_count, current_page, per_page, total_pages, has_next, has_prev, next_offset) should accurately reflect the current page and dataset.
+
+ST-304: View core data and score breakdown for leads in a list
+
+As an API user,
+
+I want each lead in the retrieved list to include core company information, its lead score, and a summary score breakdown,
+
+So that I can quickly assess the leads.
+
+Acceptance Criteria:
+
+When leads are retrieved via /api/v1/leads.
+
+Then each lead object in the leads array must contain fields as specified in FR3.4 (company details, lead_score, contact_count, last_updated).
+
+And each lead object must contain a score_breakdown object as specified in FR3.5.
+
+6.4. Detailed lead information
+ST-401: Retrieve detailed information for a specific lead
+
+As an API user,
+
+I want to retrieve all detailed information for a specific lead using its unique lead_id,
+
+So that I can get a comprehensive understanding of that lead.
+
+Acceptance Criteria:
+
+Given a valid lead_id.
+
+When a GET request is made to /api/v1/leads/{lead_id}.
+
+Then the system should respond with a 200 OK status.
+
+And the response body should contain comprehensive company details (FR4.2), a list of contacts (FR4.3), business intelligence data (FR4.4), engagement opportunities (FR4.5), score breakdown (FR3.5), and data sources (FR4.6).
+
+ST-402: Retrieve details for a non-existent lead
+
+As an API user,
+
+I want to receive a 404 error if I try to retrieve details for a lead_id that does not exist,
+
+So that I know the lead ID is incorrect.
+
+Acceptance Criteria:
+
+Given an invalid or non-existent lead_id.
+
+When a GET request is made to /api/v1/leads/{lead_id}.
+
+Then the system should respond with a 404 Not Found status.
+
+And the response body should contain an appropriate error message.
+
+6.5. Data export
+ST-501: Export selected leads to a CSV file
+
+As an API user,
+
+I want to export leads to a CSV file by providing a job_id,
+
+So that I can use the lead data in other applications or for offline analysis.
+
+Acceptance Criteria:
+
+Given a valid job_id.
+
+When a GET request is made to /api/v1/export/csv with the job_id parameter.
+
+Then the system should respond with a 200 OK status.
+
+And the Content-Type header should be text/csv.
+
+And the Content-Disposition header should suggest a filename like "leads_{date}.csv".
+
+And the response body should be a CSV formatted string containing the lead data.
+
+ST-502: Export leads to CSV with specific fields
+
+As an API user,
+
+I want to specify which fields (e.g., company_name, contact_email, lead_score) to include in the CSV export,
+
+So that the exported file only contains the data I need.
+
+Acceptance Criteria:
+
+Given a valid job_id and a fields parameter with a comma-separated list of valid field names.
+
+When a GET request is made to /api/v1/export/csv.
+
+Then the CSV output should only contain columns corresponding to the specified fields, in the order specified if possible.
+
+ST-503: Export leads to CSV filtered by minimum score
+
+As an API user,
+
+I want to filter the leads for CSV export by a minimum lead_score,
+
+So that I only export higher-quality leads.
+
+Acceptance Criteria:
+
+Given a valid job_id and a score_min parameter.
+
+When a GET request is made to /api/v1/export/csv.
+
+Then the CSV output should only contain leads with a lead_score greater than or equal to score_min.
+
+6.6. Analytics and insights
+ST-601: Retrieve analytics summary for a job
+
+As an API user,
+
+I want to retrieve an analytics summary for a specific job_id,
+
+So that I can understand the overall performance and outcome of the lead generation job.
+
+Acceptance Criteria:
+
+Given a valid job_id for a completed job.
+
+When a GET request is made to /api/v1/analytics/summary with the job_id parameter.
+
+Then the system should respond with a 200 OK status.
+
+And the response body should contain a job_summary (FR6.2), lead_quality_distribution (FR6.3), contact_analytics (FR6.4), industry_breakdown (FR6.5), company_size_distribution (FR6.5), technology_trends (FR6.6), and engagement_opportunities summary (FR6.7).
+
+ST-602: Retrieve analytics for a non-existent job ID
+
+As an API user,
+
+I want to receive an appropriate error if I request analytics for a job_id that does not exist,
+
+So that I am aware of the incorrect ID.
+
+Acceptance Criteria:
+
+Given an invalid or non-existent job_id.
+
+When a GET request is made to /api/v1/analytics/summary.
+
+Then the system should respond with a 404 Not Found status and an error message.
+
+6.7. System administration & health
+ST-701: Check system health
+
+As an API user or System Administrator,
+
+I want to access a health check endpoint,
+
+So that I can verify the operational status of the application and its dependencies.
+
+Acceptance Criteria:
+
+When a GET request is made to /api/v1/health.
+
+Then the system should respond with a 200 OK status.
+
+And the response body should indicate the overall status (e.g., "healthy"), version, environment, and status of services like database and scraping engine, along with system performance metrics (FR7.2).
+
+6.8. Data management (backend processes)
+ST-DM01: System scrapes data from configured sources
+
+As the System,
+
+I need to scrape data from configured sources like Google My Business, LinkedIn, company websites, and business directories based on job criteria,
+
+So that lead information can be collected.
+
+Acceptance Criteria:
+
+Given a lead search job is initiated with specific criteria.
+
+The scraping engine correctly targets the defined data sources.
+
+Data relevant to the search criteria is successfully extracted from these sources.
+
+Scraping adheres to ethical guidelines and rate limits (FR8.2).
+
+ST-DM02: System validates and cleans scraped data
+
+As the System,
+
+I need to validate and clean the raw scraped data according to predefined rules (e.g., email format, phone standardization),
+
+So that the data stored and presented is accurate and consistent.
+
+Acceptance Criteria:
+
+Raw data from scraping is processed through validation modules.
+
+Invalid data (e.g., malformed emails) is handled appropriately (flagged or corrected).
+
+Data formats are standardized (e.g., phone numbers to a common format).
+
+ST-DM03: System enriches lead data
+
+As the System,
+
+I need to enrich lead data by inferring additional information like company size, industry classification, and technology stack,
+
+So that leads are more comprehensive and valuable.
+
+Acceptance Criteria:
+
+Enrichment processes are applied to cleaned data.
+
+Company size is estimated based on available information.
+
+Industry is classified using appropriate methods.
+
+Technology stack is detected from company websites or other sources.
+
+ST-DM04: System scores leads based on defined algorithm
+
+As the System,
+
+I need to apply a scoring algorithm to each lead based on criteria like contact completeness, business indicators, data quality, and engagement potential,
+
+So that leads can be prioritized.
+
+Acceptance Criteria:
+
+A lead scoring algorithm (as per FR8.5) is consistently applied to all processed leads.
+
+Each lead receives a numerical lead_score.
+
+A score_breakdown detailing the contribution of different factors is generated for each lead.
+
+ST-DM05: System deduplicates company and contact data
+
+As the System,
+
+I need to identify and handle duplicate company and contact records using a defined strategy,
+
+So that data redundancy is minimized and data integrity is maintained.
+
+Acceptance Criteria:
+
+Deduplication logic (as per FR8.7) is applied during data processing.
+
+Duplicate companies are identified based on criteria like name and domain.
+
+Duplicate contacts within a company are identified based on criteria like email.
+
+A merge strategy is applied to consolidate information from duplicate records.
+
+ST-DB01: Database schema supports lead generation data
+
+As a Backend Developer,
+
+I need a well-defined database schema (e.g., in Supabase/PostgreSQL) to store companies, contacts, scraping jobs, scraped data, lead scores, and related metadata,
+
+So that data is organized, persistent, and can be efficiently queried and managed.
+
+Acceptance Criteria:
+
+The database schema includes tables for companies, contacts, scraped_data, and scraping_jobs as outlined in backend_requirements.md.
+
+Relationships (e.g., one-to-many between companies and contacts) are correctly defined with foreign keys.
+
+Appropriate data types, constraints (e.g., NOT NULL, UNIQUE, CHECK), and default values are used for all fields.
+
+Indexes are created on frequently queried columns (e.g., job_id, lead_id, company_name, email, lead_score) to optimize query performance.
+
+Mechanisms for handling data updates (e.g., updated_at timestamps) are in place.
+
+6.9. API design & error handling
+ST-API01: API provides standardized error responses
+
+As an API user,
+
+I want to receive standardized and informative error responses when an API request fails,
+
+So that I can understand the cause of the error and take appropriate action.
+
+Acceptance Criteria:
+
+For validation errors (e.g., missing required fields, invalid data types), the API returns a 4xx status code (e.g., 400 or 422) with a JSON body detailing the specific fields and error messages (FR9.2).
+
+For "Job not found" errors, the API returns a 404 status code with a relevant error message.
+
+For rate limit exceeded errors, the API returns a 429 status code and includes a Retry-After header if applicable.
+
+For general server errors, the API returns a 5xx status code with a generic error message and potentially an error ID for tracking.
+
+ST-API02: API implements rate limiting
+
+As a System Administrator,
+
+I want the API to have rate limiting implemented,
+
+So that abuse is prevented and fair usage is ensured for all users.
+
+Acceptance Criteria:
+
+Rate limits are defined for API endpoints based on expected usage patterns.
+
+When an API user exceeds the defined rate limit, subsequent requests receive a 429 Too Many Requests error response.
+
+The rate limiting mechanism is configurable.
+
+ST-SEC01: API access is secured
+
+As an API user,
+
+I expect that API endpoints are secured and require proper authentication/authorization,
+
+So that only legitimate users can access the system's functionalities and data.
+
+Acceptance Criteria:
+
+The API implements an authentication mechanism (e.g., API Key or JWT, as suggested in backend_requirements.md).
+
+Requests without valid authentication credentials or with insufficient permissions are rejected with an appropriate error status (e.g., 401 Unauthorized or 403 Forbidden).
+
+All API communication occurs over HTTPS to ensure data in transit is encrypted.
+
+7. Technical requirements / stack
+Based on the backend_requirements.md document:
+
+Web Framework: FastAPI (for high-performance async API)
+
+Database: PostgreSQL (preferred for Supabase integration) or SQLite (for simpler/MVP setups)
+
+Background Jobs: Celery with Redis (for asynchronous task processing)
+
+Web Scraping: BeautifulSoup, Requests, Selenium (if needed for dynamic sites), fake-useragent
+
+Data Validation: Pydantic (for schema validation)
+
+Authentication (Implied for API security): JWT (as mentioned in backend_requirements.md for API security)
+
+Documentation: OpenAPI/Swagger (auto-generated from FastAPI)
+
+Containerization: Docker
+
+Testing: Pytest (for unit and integration tests)
+
+Programming Language: Python
+
+Key Dependencies (from backend_requirements.md):
+
+fastapi, uvicorn, pydantic
+
+sqlalchemy, alembic, psycopg2-binary (for PostgreSQL)
+
+requests, beautifulsoup4, selenium, fake-useragent
+
+celery, redis
+
+pandas, phonenumbers, email-validator
+
+python-multipart, python-jose[cryptography], passlib[bcrypt]
+
+8. Design and user interface
+The primary interface for the Lead Generation Application is a RESTful API. All functionalities described in this document will be accessible via API endpoints.
+
+API Design: The API will adhere to REST principles, using standard HTTP methods (GET, POST), status codes, and JSON for request/response bodies. API documentation will be auto-generated (e.g., via Swagger/OpenAPI from FastAPI) and will provide clear examples for each endpoint.
+
+User Interface (UI): A dedicated graphical user interface (GUI) for end-users is outside the scope of this specific backend-focused PRD. However, if a UI were to be developed, it should be intuitive and user-friendly, allowing users to easily:
+
+Define and initiate lead searches.
+
+Monitor job progress.
+
+View and filter lead results.
+
+Access detailed lead information.
+
+Manage data exports.
+
+View analytics dashboards.
+
+The design of such a UI would be covered in a separate specification document. For the purpose of this PRD, the "user" primarily refers to an API consumer (which could be another application or a developer).

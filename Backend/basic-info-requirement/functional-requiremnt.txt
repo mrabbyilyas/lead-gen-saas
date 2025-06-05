@@ -1,0 +1,133 @@
+Functional Requirements: Lead Generation Application
+1. Lead Search Initiation
+FR1.1 Initiate Asynchronous Search: Users (via API) must be able to initiate an asynchronous lead search by providing criteria such as industry, location, company size, and max results. (Source: api_examples.md - Endpoint 1; backend_requirements.md - POST /api/v1/scrape/search)
+
+FR1.2 Advanced Search Filtering: The search initiation must support advanced filters, including but not limited to has_website, min_employees, and technologies. (Source: api_examples.md - Endpoint 1 Request Body)
+
+FR1.3 Job Creation and Confirmation: Upon search initiation, the system shall create a background job and return a unique job_id, initial status (e.g., "initiated"), search criteria, and an estimated completion time/duration. (Source: api_examples.md - Endpoint 1 Response)
+
+2. Job Status Tracking
+FR2.1 Retrieve Job Status: Users (via API) must be able to check the status of an ongoing or completed search job using its job_id. (Source: api_examples.md - Endpoint 2; backend_requirements.md - GET /api/v1/scrape/status/{job_id})
+
+FR2.2 Detailed Progress Reporting: The job status response must include:
+
+Current status (e.g., "running", "completed", "failed")
+
+Progress percentage
+
+Current processing step
+
+Count of results found
+
+Number of items processed/remaining
+
+Any errors encountered during the job, with details like company and error message.
+
+Performance metrics like companies processed per minute and success rate. (Source: api_examples.md - Endpoint 2 Response)
+
+FR2.3 Job Completion Summary: For completed jobs, the status response must provide a summary including total processed items, successful items, failed items, categorized lead quality counts (e.g., high/medium quality), and total processing time. (Source: api_examples.md - Endpoint 2 Response (Completed))
+
+FR2.4 Real-time WebSocket Updates: The system must provide real-time updates on job progress via WebSockets for a given job_id, pushing messages for events like:
+
+Job progress changes (e.g., job_progress type)
+
+Lead discovery events (e.g., lead_discovered type)
+
+Job completion (e.g., job_completed type). (Source: api_examples.md - Endpoint 7; backend_requirements.md - app/api/v1/realtime.py)
+
+3. Lead Data Retrieval
+FR3.1 Retrieve Processed Leads: Users (via API) must be able to retrieve processed leads, typically associated with a job_id. (Source: api_examples.md - Endpoint 3; backend_requirements.md - GET /api/v1/leads)
+
+FR3.2 Filtering Retrieved Leads: Lead retrieval must support filtering by criteria such as minimum lead_score. (Source: api_examples.md - Endpoint 3 Request)
+
+FR3.3 Pagination for Leads: The API must support pagination (e.g., limit, offset, current_page, total_pages, has_next, has_prev) for lead results. (Source: api_examples.md - Endpoint 3 Response)
+
+FR3.4 Core Lead Data: Each lead record must include:
+
+Company details: name, industry, size category, website, description, location (address, city, state, country, coordinates), founded year, employee count.
+
+Lead score.
+
+Count of contacts and verified contacts.
+
+Last updated timestamp. (Source: api_examples.md - Endpoint 3 Response)
+
+FR3.5 Lead Score Breakdown: Each lead must have a detailed score_breakdown showing scores for categories like contact completeness, business indicators, data quality, and engagement potential. (Source: api_examples.md - Endpoint 3 & 4 Response)
+
+4. Detailed Lead Information
+FR4.1 Retrieve Specific Lead Details: Users (via API) must be able to retrieve detailed information for a specific lead using its unique lead_id. (Source: api_examples.md - Endpoint 4; backend_requirements.md - GET /api/v1/leads/{lead_id})
+
+FR4.2 Comprehensive Company Information: The detailed view must provide expanded company information, including business info (e.g., revenue estimate, business model, target market, timezone). (Source: api_examples.md - Endpoint 4 Response)
+
+FR4.3 Associated Contact Details: The detailed view must list associated contacts with their name, title, email, phone, LinkedIn URL, decision-maker status, confidence score, source, and verification status. (Source: api_examples.md - Endpoint 4 Response)
+
+FR4.4 Business Intelligence Data: The detailed view must include business intelligence insights:
+
+Growth Signals: (e.g., hiring, funding, expansion with descriptions and confidence)
+
+Technology Stack: (categorized: frontend, backend, database, cloud, analytics, marketing)
+
+Pain Points: (identified category, description, source, confidence)
+
+Competitive Landscape: (e.g., competitor name, relationship, market position). (Source: api_examples.md - Endpoint 4 Response)
+
+FR4.5 Engagement Opportunities: The system may suggest potential engagement opportunities with type, description, priority, and suggested approach. (Source: api_examples.md - Endpoint 4 Response)
+
+FR4.6 Data Source Information: The detailed view must list data sources used for the lead, including source name, URL, scraped timestamp, and data types obtained. (Source: api_examples.md - Endpoint 4 Response)
+
+5. Data Export
+FR5.1 Export Leads to CSV: Users (via API) must be able to export leads to a CSV file. (Source: api_examples.md - Endpoint 5; backend_requirements.md - GET /api/v1/export/csv, csv_exporter.py)
+
+FR5.2 Selective Field Export (CSV): The CSV export functionality must allow users to specify which fields to include (e.g., company_name, contact_email, lead_score). (Source: api_examples.md - Endpoint 5 Request)
+
+FR5.3 Filtered Export (CSV): The CSV export should allow filtering of leads to be exported, for example, by job_id and score_min. (Source: api_examples.md - Endpoint 5 Request)
+
+6. Analytics and Insights
+FR6.1 Retrieve Analytics Summary: Users (via API) must be able to retrieve an analytics summary, potentially filtered by job_id. (Source: api_examples.md - Endpoint 6)
+
+FR6.2 Job Summary Analytics: The summary must include job-specific metrics like total leads, processing time, and success rate. (Source: api_examples.md - Endpoint 6 Response)
+
+FR6.3 Lead Quality Distribution Analytics: Analytics must include a distribution of leads by quality/score categories (e.g., hot, warm, cold leads with counts, percentages, and score ranges). (Source: api_examples.md - Endpoint 6 Response)
+
+FR6.4 Contact Data Analytics: Analytics must provide insights into contact data, such as total contacts, verified contacts, decision-makers, and verification rates for email/phone. (Source: api_examples.md - Endpoint 6 Response)
+
+FR6.5 Industry and Company Size Analytics: Analytics must show a breakdown of leads by industry and company size distribution. (Source: api_examples.md - Endpoint 6 Response)
+
+FR6.6 Technology Trends Analytics: Analytics should highlight technology trends, including most common and emerging technologies found in leads. (Source: api_examples.md - Endpoint 6 Response)
+
+FR6.7 Engagement Opportunities Analytics: Analytics should summarize engagement opportunities by priority. (Source: api_examples.md - Endpoint 6 Response)
+
+7. System Administration & Health
+FR7.1 System Health Check: The API must provide a health check endpoint (e.g., /api/v1/health). (Source: api_examples.md - Endpoint 9; backend_requirements.md - app/api/v1/health.py)
+
+FR7.2 Health Check Details: The health check response must report the overall system status (e.g., "healthy"), API version, environment, and status of dependent services (e.g., database, scraping engine, real-time services) including their response times or queue lengths. It should also include system performance metrics like uptime and average response time. (Source: api_examples.md - Endpoint 9 Response)
+
+8. Data Management (Backend Processes)
+FR8.1 Configurable Data Scraping: The system must scrape data from multiple sources as defined (e.g., Google My Business, LinkedIn Company Pages, Company Websites, Business Directories). (Source: backend_requirements.md - Section 1.1, 1.2)
+
+FR8.2 Scraping Ethics and Rate Limiting: Scraping processes must adhere to defined constraints like requests per minute, concurrent requests, user-agent rotation, respecting robots.txt, and request delays. (Source: backend_requirements.md - Section 1.1)
+
+FR8.3 Data Validation and Cleaning: Scraped data must undergo validation (e.g., format, domain checks for email; format standardization for phone; URL validity for websites) and cleaning according to defined rules. (Source: backend_requirements.md - Section 2.1)
+
+FR8.4 Data Enrichment: The system must enrich data, for instance, by estimating company size, classifying industry (using NLP if specified), and detecting technology stacks from websites. (Source: backend_requirements.md - Section 2.2)
+
+FR8.5 Lead Scoring Algorithm Implementation: A defined lead scoring algorithm with weighted criteria (e.g., contact completeness, business indicators, data quality, engagement potential) must be implemented to calculate lead scores. (Source: backend_requirements.md - Section 3.1)
+
+FR8.6 Business Intelligence Generation: The backend must process data to generate business intelligence insights, including detecting growth signals and identifying potential pain points. (Source: backend_requirements.md - Section 3.2)
+
+FR8.7 Data Deduplication: The system must implement a strategy for company and contact matching to identify and handle duplicate records, potentially using fuzzy matching and defined merge strategies. (Source: backend_requirements.md - Section 4.2)
+
+FR8.8 Persistent Data Storage: All job information, raw scraped data, processed data, company profiles, contact information, and lead scores must be stored persistently in a database (Supabase/PostgreSQL is indicated). (Source: backend_requirements.md - Section 4, Supabase Database Setup)
+
+FR8.9 Background Job Processing: Scraping and data processing tasks must be handled by background workers. (Source: backend_requirements.md - app/workers/, Technology Stack: Celery + Redis)
+
+9. API Design & Error Handling
+FR9.1 RESTful API Design: The API should follow RESTful design principles. (Source: api_examples.md - "API Features Summary")
+
+FR9.2 Standardized Error Responses: The API must return standardized error responses for issues like validation errors (with field-specific details), job not found, and rate limit exceeded (with retry_after indication). (Source: api_examples.md - Endpoint 8)
+
+FR9.3 Data Validation for Inputs: All API inputs must be validated, and clear error messages provided for invalid inputs. (Source: api_examples.md - Validation Error example; backend_requirements.md - Technology Stack: Pydantic)
+
+FR9.4 Rate Limiting: The API must implement rate limiting to prevent abuse. (Source: api_examples.md - Rate Limit Exceeded example; backend_requirements.md - app/utils/rate_limiter.py)
+
+(NFRs like performance targets, specific scalability metrics, and detailed security measures beyond authentication are generally covered in the "Performance & Scalability" and "Error Handling Strategy" sections of backend_requirements.md but are framed there more as design goals/strategies than directly testable user-facing functions in the same way as the FRs above.)
