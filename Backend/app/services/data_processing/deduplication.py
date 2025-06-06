@@ -826,7 +826,11 @@ class DataDeduplicator:
             result = self.company_deduplicator.deduplicate(companies, strategy)
             if isinstance(result, DeduplicationResult):
                 return result
-            return DeduplicationResult(original_count=len(companies), deduplicated_count=len(companies), duplicates_found=0)
+            return DeduplicationResult(
+                original_count=len(companies),
+                deduplicated_count=len(companies),
+                duplicates_found=0,
+            )
         except Exception as e:
             logger.error(f"Error deduplicating companies: {e}")
             return DeduplicationResult(
@@ -847,7 +851,11 @@ class DataDeduplicator:
             result = self.contact_deduplicator.deduplicate(contacts, strategy)
             if isinstance(result, DeduplicationResult):
                 return result
-            return DeduplicationResult(original_count=len(contacts), deduplicated_count=len(contacts), duplicates_found=0)
+            return DeduplicationResult(
+                original_count=len(contacts),
+                deduplicated_count=len(contacts),
+                duplicates_found=0,
+            )
         except Exception as e:
             logger.error(f"Error deduplicating contacts: {e}")
             return DeduplicationResult(
