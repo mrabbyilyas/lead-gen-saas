@@ -275,7 +275,7 @@ class CompanySizeEstimator:
         """Determine size category from employee count."""
         for size, (min_count, max_count) in self.size_ranges.items():
             if min_count <= employee_count <= max_count:
-                return size
+                return CompanySize(size) if isinstance(size, str) else size
         return None
 
     def _size_from_keywords(self, text: str) -> Optional[CompanySize]:
@@ -292,7 +292,8 @@ class CompanySizeEstimator:
                 size_scores[size] = score
 
         if size_scores:
-            return max(size_scores, key=lambda x: size_scores[x])
+            result = max(size_scores, key=lambda x: size_scores[x])
+            return CompanySize(result) if isinstance(result, str) else result
         return None
 
     def _size_from_technologies(self, technologies: List[str]) -> Optional[CompanySize]:
@@ -309,7 +310,8 @@ class CompanySizeEstimator:
                 size_scores[size] = score
 
         if size_scores:
-            return max(size_scores, key=lambda x: size_scores[x])
+            result = max(size_scores, key=lambda x: size_scores[x])
+            return CompanySize(result) if isinstance(result, str) else result
         return None
 
     def _extract_website_complexity_indicators(
@@ -665,7 +667,7 @@ class RevenueEstimator:
 
         for category, (min_val, max_val) in self.revenue_ranges.items():
             if min_val <= estimate <= max_val:
-                return category
+                return RevenueRange(category) if isinstance(category, str) else category
 
         return RevenueRange.UNDER_1M
 

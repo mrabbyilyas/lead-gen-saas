@@ -676,7 +676,7 @@ class ContactDeduplicator:
     def _get_full_name(self, contact: Dict[str, Any]) -> str:
         """Get full name from contact record."""
         if "full_name" in contact:
-            return contact["full_name"]
+            return str(contact["full_name"]) if contact["full_name"] is not None else ""
 
         first_name = contact.get("first_name", "")
         last_name = contact.get("last_name", "")
@@ -823,7 +823,10 @@ class DataDeduplicator:
     ) -> DeduplicationResult:
         """Deduplicate company records."""
         try:
-            return self.company_deduplicator.deduplicate(companies, strategy)
+            result = self.company_deduplicator.deduplicate(companies, strategy)
+            if isinstance(result, DeduplicationResult):
+                return result
+            return DeduplicationResult(original_count=len(companies), deduplicated_count=len(companies), duplicates_found=0)
         except Exception as e:
             logger.error(f"Error deduplicating companies: {e}")
             return DeduplicationResult(
@@ -841,7 +844,10 @@ class DataDeduplicator:
     ) -> DeduplicationResult:
         """Deduplicate contact records."""
         try:
-            return self.contact_deduplicator.deduplicate(contacts, strategy)
+            result = self.contact_deduplicator.deduplicate(contacts, strategy)
+            if isinstance(result, DeduplicationResult):
+                return result
+            return DeduplicationResult(original_count=len(contacts), deduplicated_count=len(contacts), duplicates_found=0)
         except Exception as e:
             logger.error(f"Error deduplicating contacts: {e}")
             return DeduplicationResult(
@@ -856,10 +862,12 @@ class DataDeduplicator:
         self, companies: List[Dict[str, Any]]
     ) -> List[MatchResult]:
         """Find duplicate companies without merging."""
-        return self.company_deduplicator.find_duplicates(companies)
+        result = self.company_deduplicator.find_duplicates(companies)
+        return result if isinstance(result, list) else []
 
     def find_contact_duplicates(
         self, contacts: List[Dict[str, Any]]
     ) -> List[MatchResult]:
         """Find duplicate contacts without merging."""
-        return self.contact_deduplicator.find_duplicates(contacts)
+        result = self.contact_deduplicator.find_duplicates(contacts)
+        return result if isinstance(result, list) else []

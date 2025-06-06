@@ -273,19 +273,22 @@ class TextCleaner:
         """Extract email addresses from text."""
         if not text:
             return []
-        return self.patterns["email_pattern"].findall(text)
+        result = self.patterns["email_pattern"].findall(text)
+        return [str(item) for item in result] if isinstance(result, list) else []
 
     def extract_phones(self, text: str) -> List[str]:
         """Extract phone numbers from text."""
         if not text:
             return []
-        return self.patterns["phone_pattern"].findall(text)
+        result = self.patterns["phone_pattern"].findall(text)
+        return [str(item) for item in result] if isinstance(result, list) else []
 
     def extract_urls(self, text: str) -> List[str]:
         """Extract URLs from text."""
         if not text:
             return []
-        return self.patterns["url_pattern"].findall(text)
+        result = self.patterns["url_pattern"].findall(text)
+        return [str(item) for item in result] if isinstance(result, list) else []
 
 
 class AddressCleaner:

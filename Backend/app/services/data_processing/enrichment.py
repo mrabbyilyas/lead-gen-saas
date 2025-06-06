@@ -559,7 +559,8 @@ class CompanyEnricher:
                 industry_scores[industry] = score
 
         if industry_scores:
-            return max(industry_scores, key=lambda x: industry_scores[x])
+            result = max(industry_scores, key=lambda x: industry_scores[x])
+            return str(result) if result is not None else None
 
         return None
 
@@ -771,7 +772,7 @@ class ContactEnricher:
         for category, keywords in self.job_categories.items():
             for keyword in keywords:
                 if keyword in job_title_lower:
-                    return category
+                    return str(category) if category is not None else "Other"
 
         return "Other"
 

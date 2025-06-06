@@ -235,13 +235,15 @@ class BaseScraper(ABC):
     def _extract_text(self, element, default: str = "") -> str:
         """Safely extract text from a BeautifulSoup element."""
         if element:
-            return element.get_text(strip=True)
+            result = element.get_text(strip=True)
+            return str(result) if result is not None else default
         return default
 
     def _extract_attribute(self, element, attribute: str, default: str = "") -> str:
         """Safely extract an attribute from a BeautifulSoup element."""
         if element and element.has_attr(attribute):
-            return element[attribute]
+            result = element[attribute]
+            return str(result) if result is not None else default
         return default
 
     def _clean_url(self, url: str, base_url: str = "") -> str:

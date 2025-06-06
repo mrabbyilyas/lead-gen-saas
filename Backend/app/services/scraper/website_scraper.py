@@ -2,7 +2,7 @@
 
 import re
 import time
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional, Any, Set
 from urllib.parse import urljoin, urlparse
 
 from bs4 import BeautifulSoup, Tag
@@ -24,7 +24,7 @@ class WebsiteScraper(BaseScraper):
 
     def __init__(self, config: Optional[ScrapingConfig] = None):
         super().__init__(config)
-        self.visited_urls: set[str] = set()
+        self.visited_urls: Set[str] = set()
         self.contact_patterns = self._compile_contact_patterns()
 
     def get_source(self) -> ScrapingSource:

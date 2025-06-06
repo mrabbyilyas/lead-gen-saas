@@ -3,7 +3,7 @@
 import time
 from collections import defaultdict, deque
 from dataclasses import dataclass
-from typing import Dict, Optional, Any
+from typing import Dict, Optional, Any, Deque
 from urllib.parse import urlparse
 
 
@@ -71,8 +71,8 @@ class DomainRateLimiter:
         self.last_refill = time.time()
 
         # Sliding window for requests per minute/hour
-        self.minute_requests: deque[float] = deque()
-        self.hour_requests: deque[float] = deque()
+        self.minute_requests: Deque[float] = deque()
+        self.hour_requests: Deque[float] = deque()
 
         # Backoff tracking
         self.consecutive_failures: int = 0
