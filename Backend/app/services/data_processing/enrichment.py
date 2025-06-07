@@ -5,6 +5,7 @@ import logging
 import asyncio
 from typing import Dict, List, Optional, Any
 from dataclasses import dataclass, field
+from datetime import datetime
 from enum import Enum
 import aiohttp
 from urllib.parse import urlparse
@@ -57,6 +58,58 @@ class EnrichmentResult:
     sources: List[str] = field(default_factory=list)
     errors: List[str] = field(default_factory=list)
     metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+class DataEnrichmentService:
+    """Service for enriching company data with additional information."""
+
+    def __init__(self):
+        self.technology_detector = TechnologyDetector()
+
+    async def enrich_company_data(
+        self, company_data: Dict[str, Any]
+    ) -> EnrichmentResult:
+        """Enrich company data with additional information."""
+        try:
+            enriched_data = company_data.copy()
+            technologies = []
+            sources = []
+            errors = []
+
+            # Try to detect technologies from website
+            if "website" in company_data and company_data["website"]:
+                try:
+                    detected_techs = await self.technology_detector.detect_from_website(
+                        company_data["website"]
+                    )
+                    technologies.extend(detected_techs)
+                    sources.append("website_analysis")
+                except Exception as e:
+                    errors.append(f"Website analysis failed: {str(e)}")
+
+            # Calculate confidence score
+            confidence_score = len(technologies) * 0.1 if technologies else 0.0
+            confidence_score = min(confidence_score, 1.0)
+
+            return EnrichmentResult(
+                original_data=company_data,
+                enriched_data=enriched_data,
+                technologies=technologies,
+                confidence_score=confidence_score,
+                sources=sources,
+                errors=errors,
+                metadata={"enrichment_timestamp": datetime.now().isoformat()},
+            )
+        except Exception as e:
+            return EnrichmentResult(
+                original_data=company_data,
+                enriched_data=company_data,
+                technologies=[],
+                confidence_score=0.0,
+                sources=[],
+                errors=[f"Enrichment failed: {str(e)}"],
+                metadata={},
+            )
 
 
 class TechnologyDetector:

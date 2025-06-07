@@ -7,6 +7,7 @@ from typing import List, Dict, Any, Optional
 from app.core.celery_app import celery_app
 from app.services.scraper.scraper_manager import ScraperManager
 from app.services.supabase_service import SupabaseService
+from app.services.websocket_service import get_websocket_service
 from .job_status import JobStatus, JobType
 from .job_manager import job_manager
 
@@ -27,13 +28,25 @@ def scrape_companies_task(
             job_result.started_at = datetime.utcnow()
             job_manager._store_job_result(job_result)
 
+            # Initialize variables
+        total_companies = len(company_urls)
+        scraped_companies: List[Dict[str, Any]] = []
+        failed_companies: List[Dict[str, Any]] = []
+
+        # Send initial WebSocket notification
+        websocket_service = get_websocket_service()
+        websocket_service.notify_job_progress(
+            job_id=job_id,
+            status=JobStatus.STARTED,
+            progress_percentage=0.0,
+            processed_targets=0,
+            total_targets=total_companies,
+            message="Starting company scraping job",
+        )
+
         # Initialize scraper manager
         scraper_manager = ScraperManager()
         supabase_service = SupabaseService(table_name="companies")
-
-        total_companies = len(company_urls)
-        scraped_companies = []
-        failed_companies = []
 
         for i, company_url in enumerate(company_urls):
             try:
@@ -44,6 +57,19 @@ def scrape_companies_task(
                     total=total_companies,
                     message=f"Scraping {company_url}",
                     current_url=company_url,
+                )
+
+                # Send WebSocket progress notification
+                websocket_service = get_websocket_service()
+                progress_percentage = (i / total_companies) * 100
+                websocket_service.notify_job_progress(
+                    job_id=job_id,
+                    status=JobStatus.PROGRESS,
+                    progress_percentage=progress_percentage,
+                    processed_targets=i,
+                    total_targets=total_companies,
+                    companies_found=len(scraped_companies),
+                    message=f"Scraping {company_url}",
                 )
 
                 # Scrape company
@@ -100,6 +126,22 @@ def scrape_companies_task(
             }
             job_manager._store_job_result(job_result)
 
+            # Send WebSocket completion notification
+            websocket_service = get_websocket_service()
+            websocket_service.notify_job_completion(
+                job_id=job_id,
+                status=JobStatus.SUCCESS,
+                total_companies=len(scraped_companies),
+                total_contacts=0,
+                job_type="company_scraping",
+                summary=f"Successfully scraped {len(scraped_companies)} companies, {len(failed_companies)} failed",
+                result_data={
+                    "scraped_companies": len(scraped_companies),
+                    "failed_companies": len(failed_companies),
+                    "total_processed": total_companies,
+                },
+            )
+
         # Update statistics
         job_manager._update_job_stats("completed", JobType.SCRAPING)
 
@@ -124,6 +166,17 @@ def scrape_companies_task(
             job_result.error_traceback = traceback.format_exc()
             job_manager._store_job_result(job_result)
 
+            # Send WebSocket error notification
+            websocket_service = get_websocket_service()
+            websocket_service.notify_job_error(
+                job_id=job_id,
+                error_message=str(e),
+                error_details={
+                    "error_type": "ScrapeError",
+                    "traceback_info": traceback.format_exc(),
+                },
+            )
+
         # Update statistics
         job_manager._update_job_stats("failed", JobType.SCRAPING)
 
@@ -139,12 +192,26 @@ def scrape_single_company_task(
     scrape_config = scrape_config or {}
 
     try:
+        # Initialize variables
+        total_companies = 1  # Single company task
+
         # Update job status to started
         job_result = job_manager._get_job_result(job_id)
         if job_result:
             job_result.status = JobStatus.STARTED
             job_result.started_at = datetime.utcnow()
             job_manager._store_job_result(job_result)
+
+            # Send WebSocket notification for job start
+            websocket_service = get_websocket_service()
+            websocket_service.notify_job_progress(
+                job_id=job_id,
+                status=JobStatus.STARTED,
+                progress_percentage=0.0,
+                processed_targets=0,
+                total_targets=total_companies,
+                message="Starting company scraping job",
+            )
 
         # Initialize scraper manager
         scraper_manager = ScraperManager()
@@ -212,6 +279,17 @@ def scrape_single_company_task(
             job_result.error_traceback = traceback.format_exc()
             job_manager._store_job_result(job_result)
 
+            # Send WebSocket error notification
+            websocket_service = get_websocket_service()
+            websocket_service.notify_job_error(
+                job_id=job_id,
+                error_message=str(e),
+                error_details={
+                    "error_type": "ScrapeError",
+                    "traceback_info": traceback.format_exc(),
+                },
+            )
+
         # Update statistics
         job_manager._update_job_stats("failed", JobType.SCRAPING)
 
@@ -230,12 +308,26 @@ def batch_scrape_task(
     scrape_config = scrape_config or {}
 
     try:
+        # Initialize variables
+        total_companies = 1  # Single company task
+
         # Update job status to started
         job_result = job_manager._get_job_result(job_id)
         if job_result:
             job_result.status = JobStatus.STARTED
             job_result.started_at = datetime.utcnow()
             job_manager._store_job_result(job_result)
+
+            # Send WebSocket notification for job start
+            websocket_service = get_websocket_service()
+            websocket_service.notify_job_progress(
+                job_id=job_id,
+                status=JobStatus.STARTED,
+                progress_percentage=0.0,
+                processed_targets=0,
+                total_targets=total_companies,
+                message="Starting company scraping job",
+            )
 
         # Initialize scraper manager
         scraper_manager = ScraperManager()
@@ -365,6 +457,17 @@ def batch_scrape_task(
             job_result.error_message = str(e)
             job_result.error_traceback = traceback.format_exc()
             job_manager._store_job_result(job_result)
+
+            # Send WebSocket error notification
+            websocket_service = get_websocket_service()
+            websocket_service.notify_job_error(
+                job_id=job_id,
+                error_message=str(e),
+                error_details={
+                    "error_type": "ScrapeError",
+                    "traceback_info": traceback.format_exc(),
+                },
+            )
 
         # Update statistics
         job_manager._update_job_stats("failed", JobType.SCRAPING)

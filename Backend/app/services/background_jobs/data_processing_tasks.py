@@ -9,6 +9,7 @@ from app.services.data_processing.pipeline import DataProcessingPipeline
 from app.services.data_processing.lead_scoring import LeadScoringEngine
 from app.services.data_processing.enrichment import DataEnrichmentService  # type: ignore
 from app.services.supabase_service import SupabaseService
+from app.services.websocket_service import get_websocket_service
 from .job_status import JobStatus, JobType
 from .job_manager import job_manager
 
@@ -22,6 +23,11 @@ def process_scraped_data_task(
     processing_config = processing_config or {}
 
     try:
+        # Initialize variables
+        total_companies = len(company_ids)
+        processed_companies: List[Dict[str, Any]] = []
+        failed_companies: List[Dict[str, Any]] = []
+
         # Update job status to started
         job_result = job_manager._get_job_result(job_id)
         if job_result:
@@ -29,13 +35,20 @@ def process_scraped_data_task(
             job_result.started_at = datetime.utcnow()
             job_manager._store_job_result(job_result)
 
+            # Send WebSocket notification for job start
+            websocket_service = get_websocket_service()
+            websocket_service.notify_job_progress(
+                job_id=job_id,
+                status=JobStatus.STARTED,
+                progress_percentage=0.0,
+                processed_targets=0,
+                total_targets=total_companies,
+                message="Starting data processing job",
+            )
+
         # Initialize services
         pipeline = DataProcessingPipeline()
         supabase_service = SupabaseService(table_name="companies")
-
-        total_companies = len(company_ids)
-        processed_companies = []
-        failed_companies = []
 
         for i, company_id in enumerate(company_ids):
             try:
@@ -46,6 +59,19 @@ def process_scraped_data_task(
                     total=total_companies,
                     message=f"Processing company {company_id}",
                     current_company_id=company_id,
+                )
+
+                # Send WebSocket progress notification
+                websocket_service = get_websocket_service()
+                progress_percentage = (i / total_companies) * 100
+                websocket_service.notify_job_progress(
+                    job_id=job_id,
+                    status=JobStatus.PROGRESS,
+                    progress_percentage=progress_percentage,
+                    processed_targets=i,
+                    total_targets=total_companies,
+                    companies_found=len(processed_companies),
+                    message=f"Processing company {company_id}",
                 )
 
                 # Get company data
@@ -147,6 +173,11 @@ def calculate_lead_scores_task(
     scoring_config = scoring_config or {}
 
     try:
+        # Initialize variables
+        total_companies = len(company_ids)
+        scored_companies: List[Dict[str, Any]] = []
+        failed_companies: List[Dict[str, Any]] = []
+
         # Update job status to started
         job_result = job_manager._get_job_result(job_id)
         if job_result:
@@ -154,13 +185,20 @@ def calculate_lead_scores_task(
             job_result.started_at = datetime.utcnow()
             job_manager._store_job_result(job_result)
 
+            # Send WebSocket notification for job start
+            websocket_service = get_websocket_service()
+            websocket_service.notify_job_progress(
+                job_id=job_id,
+                status=JobStatus.STARTED,
+                progress_percentage=0.0,
+                processed_targets=0,
+                total_targets=total_companies,
+                message="Starting data processing job",
+            )
+
         # Initialize services
         scoring_engine = LeadScoringEngine()
         supabase_service = SupabaseService(table_name="companies")
-
-        total_companies = len(company_ids)
-        scored_companies = []
-        failed_companies = []
 
         for i, company_id in enumerate(company_ids):
             try:
@@ -274,7 +312,7 @@ def calculate_lead_scores_task(
 
 
 @celery_app.task(bind=True, name="enrich_company_data_task")
-def enrich_company_data_task(
+async def enrich_company_data_task(
     self, company_ids: List[str], enrichment_config: Optional[Dict[str, Any]] = None
 ) -> Dict[str, Any]:
     """Enrich company data with additional information in background."""
@@ -282,6 +320,11 @@ def enrich_company_data_task(
     enrichment_config = enrichment_config or {}
 
     try:
+        # Initialize variables
+        total_companies = len(company_ids)
+        enriched_companies: List[Dict[str, Any]] = []
+        failed_companies: List[Dict[str, Any]] = []
+
         # Update job status to started
         job_result = job_manager._get_job_result(job_id)
         if job_result:
@@ -289,13 +332,20 @@ def enrich_company_data_task(
             job_result.started_at = datetime.utcnow()
             job_manager._store_job_result(job_result)
 
+            # Send WebSocket notification for job start
+            websocket_service = get_websocket_service()
+            websocket_service.notify_job_progress(
+                job_id=job_id,
+                status=JobStatus.STARTED,
+                progress_percentage=0.0,
+                processed_targets=0,
+                total_targets=total_companies,
+                message="Starting data processing job",
+            )
+
         # Initialize services
         enrichment_service = DataEnrichmentService()
         supabase_service = SupabaseService(table_name="companies")
-
-        total_companies = len(company_ids)
-        enriched_companies = []
-        failed_companies = []
 
         for i, company_id in enumerate(company_ids):
             try:
@@ -321,8 +371,8 @@ def enrich_company_data_task(
                     continue
 
                 # Enrich the data
-                enriched_data = enrichment_service.enrich_company_data(  # type: ignore
-                    company_data, **enrichment_config
+                enriched_data = await enrichment_service.enrich_company_data(  # type: ignore
+                    company_data
                 )
 
                 # Update company with enriched data
@@ -334,7 +384,7 @@ def enrich_company_data_task(
                     {
                         "company_id": company_id,
                         "name": company_data.get("name"),
-                        "enriched_fields": list(enriched_data.keys()),
+                        "enriched_fields": list(enriched_data.enriched_data.keys()),
                         "status": "success",
                     }
                 )
