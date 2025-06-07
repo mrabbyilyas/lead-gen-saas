@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 import uvicorn
@@ -7,6 +7,8 @@ from app.core.config import settings
 from app.core.database import get_supabase_client
 from app.api.v1.api import api_router
 from app.services.scheduler_service import get_scheduler_service
+from app.core.security import SecurityMiddleware
+from app.core.dependencies import check_rate_limit
 
 
 @asynccontextmanager
@@ -37,7 +39,7 @@ async def lifespan(app: FastAPI):
 
     # Shutdown
     print("🛑 Shutting down Lead Generation SaaS Backend...")
-    
+
     # Stop scheduler service
     try:
         scheduler = get_scheduler_service()
@@ -54,14 +56,56 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+# Add security middleware
+app.add_middleware(
+    SecurityMiddleware,
+    allowed_hosts=(
+        ["localhost", "127.0.0.1", "0.0.0.0"]
+        if settings.ENVIRONMENT == "development"
+        else []
+    ),
+)
+
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Configure this properly for production
+    allow_origins=(
+        ["*"] if settings.ENVIRONMENT == "development" else ["https://yourdomain.com"]
+    ),
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE"],
     allow_headers=["*"],
 )
+
+
+# Rate limiting middleware
+@app.middleware("http")
+async def rate_limit_middleware(request: Request, call_next):
+    """
+    Global rate limiting middleware.
+    """
+    # Skip rate limiting for health checks and static files
+    if request.url.path in ["/", "/health", "/docs", "/redoc", "/openapi.json"]:
+        response = await call_next(request)
+        return response
+
+    # Get client IP
+    client_ip = request.client.host if request.client else "unknown"
+
+    # Check rate limit
+    try:
+        await check_rate_limit(
+            request, f"global:{client_ip}", limit=100, window=60
+        )  # 100 requests per minute
+        response = await call_next(request)
+        return response
+    except HTTPException as e:
+        if e.status_code == status.HTTP_429_TOO_MANY_REQUESTS:
+            from app.core.security import SecurityLogger
+
+            SecurityLogger.log_rate_limit_exceeded(request, client_ip)
+        raise e
+
 
 # Include API routes
 app.include_router(api_router, prefix=f"/api/{settings.API_VERSION}")

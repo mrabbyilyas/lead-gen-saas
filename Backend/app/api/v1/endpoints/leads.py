@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Query, Depends
+from fastapi import APIRouter, HTTPException, Query, Depends, Request
 from typing import Dict, Any, List, Optional
 from decimal import Decimal
 from datetime import datetime
@@ -15,6 +15,8 @@ from app.models.schemas import (
     SortParams,
 )
 from app.services.supabase_service import CompanyService, ContactService
+from app.core.dependencies import require_permissions
+from app.core.security_config import Permissions
 
 # from app.services.data_processing.lead_scoring import (
 #     create_lead_scoring_engine,
@@ -37,6 +39,7 @@ async def get_current_user_id() -> str:
 
 @router.get("/", response_model=LeadListResponse)
 async def get_leads(
+    request: Request,
     page: int = Query(1, ge=1, description="Page number"),
     size: int = Query(10, ge=1, le=100, description="Page size"),
     industry: Optional[str] = Query(None, description="Filter by industry"),
@@ -51,6 +54,7 @@ async def get_leads(
         "desc", regex="^(asc|desc)$", description="Sort order"
     ),
     user_id: str = Depends(get_current_user_id),
+    _: None = Depends(require_permissions([Permissions.LEADS_READ])),
 ):
     """Get leads with filtering, pagination, and sorting."""
     try:
@@ -90,7 +94,9 @@ async def get_leads(
         leads = []
         for company in companies:
             # Get contacts for this company
-            contacts, _ = contact_service.get_contacts_by_company(company_id=company.id)
+            contacts, total_contacts = contact_service.get_contacts_by_company(
+                company_id=company.id
+            )
 
             # Calculate lead score breakdown
             lead_score_breakdown = _calculate_lead_score_breakdown(
@@ -135,6 +141,7 @@ async def get_leads(
 async def get_lead(
     lead_id: str,
     user_id: str = Depends(get_current_user_id),
+    _: None = Depends(require_permissions([Permissions.LEADS_READ])),
 ):
     """Get detailed information for a specific lead."""
     try:
@@ -148,7 +155,9 @@ async def get_lead(
             raise HTTPException(status_code=403, detail="Access denied")
 
         # Get contacts for this company
-        contacts, _ = contact_service.get_contacts_by_company(company_id=lead_id)
+        contacts, total_contacts = contact_service.get_contacts_by_company(
+            company_id=lead_id
+        )
 
         # Calculate detailed lead score breakdown
         lead_score_breakdown = _calculate_lead_score_breakdown(
@@ -177,9 +186,11 @@ async def get_lead(
 
 @router.put("/{lead_id}/score", response_model=LeadResponse)
 async def recalculate_lead_score(
+    request: Request,
     lead_id: str,
     weights: Optional[Dict[str, float]] = None,
     user_id: str = Depends(get_current_user_id),
+    _: None = Depends(require_permissions([Permissions.LEADS_WRITE])),
 ):
     """Recalculate lead score with optional custom weights."""
     try:
@@ -193,7 +204,9 @@ async def recalculate_lead_score(
             raise HTTPException(status_code=403, detail="Access denied")
 
         # Get contacts for this company
-        contacts, _ = contact_service.get_contacts_by_company(company_id=lead_id)
+        contacts, total_contacts = contact_service.get_contacts_by_company(
+            company_id=lead_id
+        )
 
         # TODO: Implement custom score weights when scoring engine is available
         # Create custom score weights if provided
@@ -272,12 +285,14 @@ async def recalculate_lead_score(
 
 @router.get("/export/csv")
 async def export_leads_csv(
+    request: Request,
     industry: Optional[str] = Query(None),
     location: Optional[str] = Query(None),
     company_size: Optional[str] = Query(None),
     min_score: Optional[float] = Query(None, ge=0),
     max_score: Optional[float] = Query(None, ge=0),
     user_id: str = Depends(get_current_user_id),
+    _: None = Depends(require_permissions([Permissions.LEADS_READ])),
 ):
     """Export leads to CSV format."""
     try:

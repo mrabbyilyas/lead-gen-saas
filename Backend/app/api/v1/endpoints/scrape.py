@@ -1,8 +1,10 @@
-from fastapi import APIRouter, HTTPException, Query, BackgroundTasks
+from fastapi import APIRouter, HTTPException, Query, BackgroundTasks, Depends, Request
 from typing import Dict, Any, List, Optional
 from uuid import UUID
 from datetime import datetime, timedelta
 
+from app.core.dependencies import get_current_user, require_permissions, User
+from app.core.security_config import Permissions
 from app.models.api_schemas import (
     ScrapingJobRequest,
     ScrapingJobStatusResponse,
@@ -20,8 +22,11 @@ job_manager = JobManager()
 
 @router.post("/search", response_model=Dict[str, Any])
 async def start_scraping_search(
+    scrape_request: Request,
     job_request: ScrapingJobRequest,
     background_tasks: BackgroundTasks,
+    current_user: User = Depends(get_current_user),
+    _: None = Depends(require_permissions([Permissions.SCRAPE_EXECUTE])),
 ):
     """Start a new scraping job based on search parameters.
 
@@ -142,7 +147,11 @@ async def start_scraping_search(
 
 
 @router.get("/status/{job_id}", response_model=ScrapingJobStatusResponse)
-async def get_scraping_status(job_id: str):
+async def get_scraping_status(
+    job_id: str,
+    current_user: User = Depends(get_current_user),
+    _: None = Depends(require_permissions([Permissions.SCRAPE_READ])),
+):
     """Get detailed status of a scraping job.
 
     This endpoint provides comprehensive information about a scraping job's
@@ -249,6 +258,8 @@ async def list_scraping_jobs(
     offset: int = Query(0, ge=0, description="Number of jobs to skip"),
     sort_by: str = Query("created_at", description="Field to sort by"),
     sort_order: str = Query("desc", regex="^(asc|desc)$", description="Sort order"),
+    current_user: User = Depends(get_current_user),
+    _: None = Depends(require_permissions([Permissions.SCRAPE_READ])),
 ):
     """List scraping jobs with optional filtering and pagination.
 
@@ -336,7 +347,11 @@ async def list_scraping_jobs(
 
 
 @router.post("/jobs/{job_id}/cancel")
-async def cancel_scraping_job(job_id: str):
+async def cancel_scraping_job(
+    job_id: str,
+    current_user: User = Depends(get_current_user),
+    _: None = Depends(require_permissions([Permissions.SCRAPE_EXECUTE])),
+):
     """Cancel a running or pending scraping job.
 
     This endpoint attempts to cancel a scraping job. Jobs that are already
@@ -401,7 +416,11 @@ async def cancel_scraping_job(job_id: str):
 
 
 @router.get("/jobs/{job_id}/progress")
-async def get_job_progress(job_id: str):
+async def get_job_progress(
+    job_id: str,
+    current_user: User = Depends(get_current_user),
+    _: None = Depends(require_permissions([Permissions.SCRAPE_READ])),
+):
     """Get real-time progress information for a scraping job.
 
     This endpoint provides lightweight progress information suitable for
