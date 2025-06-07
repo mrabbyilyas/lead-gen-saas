@@ -2,6 +2,7 @@ from typing import Optional, List, Dict, Any
 from fastapi import APIRouter, HTTPException, Query
 from datetime import datetime, timedelta
 from decimal import Decimal
+from typing import Union
 import logging
 
 from app.core.database import get_supabase_client
@@ -14,6 +15,7 @@ from app.models.schemas import (
     IndustryBreakdown,
     TechnologyTrends,
 )
+from app.models.api_schemas import AnalyticsRequest
 from app.services.data_processing.business_intelligence import (
     analyze_company_intelligence,
     batch_analyze_companies,
@@ -1062,3 +1064,596 @@ async def get_pain_points(
     except Exception as e:
         logger.error(f"Error getting pain points: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to retrieve pain points")
+
+
+@router.post("/comprehensive")
+async def get_comprehensive_analytics(request: AnalyticsRequest) -> AnalyticsResponse:
+    """Get comprehensive analytics with all metrics based on request parameters"""
+    try:
+        supabase = get_supabase_client()
+
+        # Create time range
+        time_range = AnalyticsTimeRange(
+            start_date=request.start_date, end_date=request.end_date
+        )
+
+        # Initialize response components
+        job_summary = JobSummaryAnalytics(success_rate=Decimal(0))
+        lead_quality = LeadQualityDistribution(average_score=Decimal(0))
+        contact_insights = ContactDataInsights()
+        industry_breakdown = IndustryBreakdown()
+        technology_trends = TechnologyTrends()
+
+        # Apply filters if provided
+        query_filters = {}
+        if request.filters:
+            for key, value in request.filters.items():
+                if key in ["industry", "company_size", "revenue_range"]:
+                    query_filters[key] = value
+
+        # Get job summary analytics if requested
+        if "job_summary" in request.metrics:
+            jobs_query = supabase.table("scraping_jobs").select("*")
+            jobs_query = jobs_query.gte("created_at", request.start_date.isoformat())
+            jobs_query = jobs_query.lte("created_at", request.end_date.isoformat())
+            jobs_result = jobs_query.execute()
+
+            total_jobs = len(jobs_result.data)
+            completed_jobs = len(
+                [j for j in jobs_result.data if j["status"] == "completed"]
+            )
+            failed_jobs = len([j for j in jobs_result.data if j["status"] == "failed"])
+            running_jobs = len(
+                [j for j in jobs_result.data if j["status"] == "running"]
+            )
+
+            # Get companies and contacts found
+            companies_result = (
+                supabase.table("companies")
+                .select("id", count="exact")
+                .gte("created_at", request.start_date.isoformat())
+                .lte("created_at", request.end_date.isoformat())
+                .execute()
+            )
+            contacts_result = (
+                supabase.table("contacts")
+                .select("id", count="exact")
+                .gte("created_at", request.start_date.isoformat())
+                .lte("created_at", request.end_date.isoformat())
+                .execute()
+            )
+
+            # Calculate average completion time
+            completed_jobs_data = [
+                j
+                for j in jobs_result.data
+                if j["status"] == "completed" and j.get("updated_at")
+            ]
+            avg_completion_time = None
+            if completed_jobs_data:
+                durations = []
+                for job in completed_jobs_data:
+                    created = datetime.fromisoformat(
+                        job["created_at"].replace("Z", "+00:00")
+                    )
+                    updated = datetime.fromisoformat(
+                        job["updated_at"].replace("Z", "+00:00")
+                    )
+                    durations.append((updated - created).total_seconds())
+                avg_completion_time = sum(durations) / len(durations)
+
+            job_summary = JobSummaryAnalytics(
+                total_jobs=total_jobs,
+                completed_jobs=completed_jobs,
+                failed_jobs=failed_jobs,
+                running_jobs=running_jobs,
+                total_companies_found=companies_result.count or 0,
+                total_contacts_found=contacts_result.count or 0,
+                average_completion_time=avg_completion_time,
+                success_rate=Decimal(completed_jobs / max(total_jobs, 1)),
+            )
+
+        # Get lead quality distribution if requested
+        if "lead_quality" in request.metrics:
+            companies_query = supabase.table("companies").select("lead_score")
+            companies_query = companies_query.gte(
+                "created_at", request.start_date.isoformat()
+            )
+            companies_query = companies_query.lte(
+                "created_at", request.end_date.isoformat()
+            )
+
+            # Apply filters
+            for key, value in query_filters.items():
+                companies_query = companies_query.eq(key, value)
+
+            companies_result = companies_query.execute()
+
+            high_quality = 0
+            medium_quality = 0
+            low_quality = 0
+            total_score = 0.0
+
+            for company in companies_result.data:
+                score = float(company.get("lead_score", 0))
+                total_score += score
+
+                if score >= 80:
+                    high_quality += 1
+                elif score >= 50:
+                    medium_quality += 1
+                else:
+                    low_quality += 1
+
+            total_leads = len(companies_result.data)
+            avg_score = Decimal(total_score / max(total_leads, 1))
+
+            lead_quality = LeadQualityDistribution(
+                high_quality=high_quality,
+                medium_quality=medium_quality,
+                low_quality=low_quality,
+                total_leads=total_leads,
+                average_score=avg_score,
+            )
+
+        # Get contact insights if requested
+        if "contact_insights" in request.metrics:
+            contacts_query = supabase.table("contacts").select("*")
+            contacts_query = contacts_query.gte(
+                "created_at", request.start_date.isoformat()
+            )
+            contacts_query = contacts_query.lte(
+                "created_at", request.end_date.isoformat()
+            )
+            contacts_result = contacts_query.execute()
+
+            total_contacts = len(contacts_result.data)
+            verified_contacts = len(
+                [c for c in contacts_result.data if c.get("is_verified")]
+            )
+            decision_makers = len(
+                [
+                    c
+                    for c in contacts_result.data
+                    if c.get("seniority_level") in ["C-Level", "VP", "Director"]
+                ]
+            )
+            contacts_with_email = len(
+                [c for c in contacts_result.data if c.get("email")]
+            )
+            contacts_with_phone = len(
+                [c for c in contacts_result.data if c.get("phone")]
+            )
+            contacts_with_linkedin = len(
+                [c for c in contacts_result.data if c.get("linkedin_url")]
+            )
+
+            # Calculate job title distribution
+            job_titles: Dict[str, int] = {}
+            seniority_dist: Dict[str, int] = {}
+            experience_years = []
+
+            for contact in contacts_result.data:
+                title = contact.get("job_title", "Unknown")
+                job_titles[title] = job_titles.get(title, 0) + 1
+
+                seniority = contact.get("seniority_level", "Unknown")
+                seniority_dist[seniority] = seniority_dist.get(seniority, 0) + 1
+
+                if contact.get("experience_years"):
+                    experience_years.append(contact["experience_years"])
+
+            top_job_titles: List[Dict[str, Union[str, int]]] = [
+                {"title": str(k), "count": int(v)}
+                for k, v in sorted(
+                    job_titles.items(), key=lambda x: x[1], reverse=True
+                )[:10]
+            ]
+
+            avg_experience = (
+                sum(experience_years) / len(experience_years)
+                if experience_years
+                else None
+            )
+
+            contact_insights = ContactDataInsights(
+                total_contacts=total_contacts,
+                verified_contacts=verified_contacts,
+                decision_makers=decision_makers,
+                contacts_with_email=contacts_with_email,
+                contacts_with_phone=contacts_with_phone,
+                contacts_with_linkedin=contacts_with_linkedin,
+                average_experience_years=avg_experience,
+                top_job_titles=top_job_titles,
+                seniority_distribution=seniority_dist,
+            )
+
+        # Get industry breakdown if requested
+        if "industry_breakdown" in request.metrics:
+            companies_query = supabase.table("companies").select(
+                "industry", "company_size", "revenue_range"
+            )
+            companies_query = companies_query.gte(
+                "created_at", request.start_date.isoformat()
+            )
+            companies_query = companies_query.lte(
+                "created_at", request.end_date.isoformat()
+            )
+            companies_result = companies_query.execute()
+
+            industry_dist: Dict[str, int] = {}
+            company_size_dist: Dict[str, int] = {}
+            revenue_dist: Dict[str, int] = {}
+
+            for company in companies_result.data:
+                industry = company.get("industry", "Unknown")
+                industry_dist[industry] = industry_dist.get(industry, 0) + 1
+
+                size = company.get("company_size", "Unknown")
+                company_size_dist[size] = company_size_dist.get(size, 0) + 1
+
+                revenue = company.get("revenue_range", "Unknown")
+                revenue_dist[revenue] = revenue_dist.get(revenue, 0) + 1
+
+            top_industries: List[Dict[str, Union[str, int]]] = [
+                {"industry": str(k), "count": int(v)}
+                for k, v in sorted(
+                    industry_dist.items(), key=lambda x: x[1], reverse=True
+                )[:10]
+            ]
+
+            industry_breakdown = IndustryBreakdown(
+                industry_distribution=industry_dist,
+                top_industries=top_industries,
+                company_size_distribution=company_size_dist,
+                revenue_distribution=revenue_dist,
+            )
+
+        # Get technology trends if requested
+        if "technology_trends" in request.metrics:
+            companies_query = supabase.table("companies").select("technology_stack")
+            companies_query = companies_query.gte(
+                "created_at", request.start_date.isoformat()
+            )
+            companies_query = companies_query.lte(
+                "created_at", request.end_date.isoformat()
+            )
+            companies_result = companies_query.execute()
+
+            tech_counts: Dict[str, int] = {}
+            tech_combinations: Dict[str, int] = {}
+            total_companies = len(companies_result.data)
+
+            for company in companies_result.data:
+                technologies = company.get("technology_stack", [])
+                if isinstance(technologies, list):
+                    for tech in technologies:
+                        tech_counts[tech] = tech_counts.get(tech, 0) + 1
+
+                    # Track technology combinations
+                    if len(technologies) > 1:
+                        combo_key = ",".join(sorted(technologies[:3]))  # Top 3 techs
+                        tech_combinations[combo_key] = (
+                            tech_combinations.get(combo_key, 0) + 1
+                        )
+
+            top_technologies: List[Dict[str, Union[str, int]]] = [
+                {"technology": str(k), "count": int(v)}
+                for k, v in sorted(
+                    tech_counts.items(), key=lambda x: x[1], reverse=True
+                )[:20]
+            ]
+
+            # Calculate adoption rates
+            tech_adoption_rate = {
+                tech: Decimal(count / max(total_companies, 1))
+                for tech, count in tech_counts.items()
+            }
+
+            # Identify emerging technologies (low adoption but growing)
+            emerging_techs = [
+                tech
+                for tech, rate in tech_adoption_rate.items()
+                if 0.05 <= rate <= 0.20  # 5-20% adoption rate
+            ][:10]
+
+            top_combinations = [
+                {"combination": k.split(","), "count": v}
+                for k, v in sorted(
+                    tech_combinations.items(), key=lambda x: x[1], reverse=True
+                )[:10]
+            ]
+
+            technology_trends = TechnologyTrends(
+                top_technologies=top_technologies,
+                technology_adoption_rate=tech_adoption_rate,
+                emerging_technologies=emerging_techs,
+                technology_combinations=top_combinations,
+            )
+
+        return AnalyticsResponse(
+            time_range=time_range,
+            job_summary=job_summary,
+            lead_quality=lead_quality,
+            contact_insights=contact_insights,
+            industry_breakdown=industry_breakdown,
+            technology_trends=technology_trends,
+        )
+
+    except Exception as e:
+        logger.error(f"Error getting comprehensive analytics: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail="Failed to retrieve comprehensive analytics"
+        )
+
+
+@router.get("/conversion-rates")
+async def get_conversion_rates(
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+    group_by: str = Query("day", regex="^(day|week|month)$"),
+):
+    """Get lead conversion rates over time"""
+    try:
+        # Set default date range
+        if not end_date:
+            end_date = datetime.utcnow().isoformat()
+        if not start_date:
+            start_date = (datetime.utcnow() - timedelta(days=30)).isoformat()
+
+        supabase = get_supabase_client()
+
+        # Get companies with lead scores
+        companies_result = (
+            supabase.table("companies")
+            .select("created_at", "lead_score", "industry")
+            .gte("created_at", start_date)
+            .lte("created_at", end_date)
+            .execute()
+        )
+
+        # Group data by time period
+        conversion_data = {}
+
+        for company in companies_result.data:
+            created_at = datetime.fromisoformat(
+                company["created_at"].replace("Z", "+00:00")
+            )
+            lead_score = float(company.get("lead_score", 0))
+
+            # Determine time grouping
+            if group_by == "day":
+                time_key = created_at.date().isoformat()
+            elif group_by == "week":
+                week_start = created_at - timedelta(days=created_at.weekday())
+                time_key = week_start.date().isoformat()
+            else:  # month
+                time_key = f"{created_at.year}-{created_at.month:02d}"
+
+            if time_key not in conversion_data:
+                conversion_data[time_key] = {
+                    "total_leads": 0,
+                    "qualified_leads": 0,
+                    "high_quality_leads": 0,
+                }
+
+            conversion_data[time_key]["total_leads"] += 1
+
+            if lead_score >= 50:
+                conversion_data[time_key]["qualified_leads"] += 1
+
+            if lead_score >= 80:
+                conversion_data[time_key]["high_quality_leads"] += 1
+
+        # Calculate conversion rates
+        result = []
+        for time_key, data in sorted(conversion_data.items()):
+            total = data["total_leads"]
+            qualified_rate = (data["qualified_leads"] / max(total, 1)) * 100
+            high_quality_rate = (data["high_quality_leads"] / max(total, 1)) * 100
+
+            result.append(
+                {
+                    "period": time_key,
+                    "total_leads": total,
+                    "qualified_leads": data["qualified_leads"],
+                    "high_quality_leads": data["high_quality_leads"],
+                    "qualified_conversion_rate": round(qualified_rate, 2),
+                    "high_quality_conversion_rate": round(high_quality_rate, 2),
+                }
+            )
+
+        return {
+            "conversion_rates": result,
+            "summary": {
+                "total_periods": len(result),
+                "avg_qualified_rate": round(
+                    sum(
+                        float(r["qualified_conversion_rate"])
+                        for r in result
+                        if isinstance(r["qualified_conversion_rate"], (int, float))
+                    )
+                    / max(len(result), 1),
+                    2,
+                ),
+                "avg_high_quality_rate": round(
+                    sum(
+                        float(r["high_quality_conversion_rate"])
+                        for r in result
+                        if isinstance(r["high_quality_conversion_rate"], (int, float))
+                    )
+                    / max(len(result), 1),
+                    2,
+                ),
+            },
+        }
+
+    except Exception as e:
+        logger.error(f"Error getting conversion rates: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail="Failed to retrieve conversion rates"
+        )
+
+
+@router.get("/data-quality")
+async def get_data_quality_metrics(
+    start_date: Optional[str] = None, end_date: Optional[str] = None
+):
+    """Get data quality metrics and insights"""
+    try:
+        # Set default date range
+        if not end_date:
+            end_date = datetime.utcnow().isoformat()
+        if not start_date:
+            start_date = (datetime.utcnow() - timedelta(days=30)).isoformat()
+
+        supabase = get_supabase_client()
+
+        # Get companies data
+        companies_result = (
+            supabase.table("companies")
+            .select("*")
+            .gte("created_at", start_date)
+            .lte("created_at", end_date)
+            .execute()
+        )
+
+        # Get contacts data
+        contacts_result = (
+            supabase.table("contacts")
+            .select("*")
+            .gte("created_at", start_date)
+            .lte("created_at", end_date)
+            .execute()
+        )
+
+        # Analyze company data quality
+        company_metrics = {
+            "total_companies": len(companies_result.data),
+            "companies_with_description": 0,
+            "companies_with_website": 0,
+            "companies_with_industry": 0,
+            "companies_with_size": 0,
+            "companies_with_revenue": 0,
+            "companies_with_technologies": 0,
+            "avg_data_completeness": 0,
+        }
+
+        total_completeness = 0.0
+
+        for company in companies_result.data:
+            completeness_score = 0
+            total_fields = 7  # Key fields to check
+
+            if company.get("description"):
+                company_metrics["companies_with_description"] += 1
+                completeness_score += 1
+
+            if company.get("website"):
+                company_metrics["companies_with_website"] += 1
+                completeness_score += 1
+
+            if company.get("industry"):
+                company_metrics["companies_with_industry"] += 1
+                completeness_score += 1
+
+            if company.get("company_size"):
+                company_metrics["companies_with_size"] += 1
+                completeness_score += 1
+
+            if company.get("revenue_range"):
+                company_metrics["companies_with_revenue"] += 1
+                completeness_score += 1
+
+            if company.get("technology_stack"):
+                company_metrics["companies_with_technologies"] += 1
+                completeness_score += 1
+
+            if company.get("employee_count"):
+                completeness_score += 1
+
+            total_completeness += (completeness_score / total_fields) * 100
+
+        if companies_result.data:
+            company_metrics["avg_data_completeness"] = int(
+                round(total_completeness / len(companies_result.data), 2)
+            )
+
+        # Analyze contact data quality
+        contact_metrics = {
+            "total_contacts": len(contacts_result.data),
+            "contacts_with_email": 0,
+            "contacts_with_phone": 0,
+            "contacts_with_linkedin": 0,
+            "contacts_with_title": 0,
+            "verified_contacts": 0,
+            "avg_data_completeness": 0,
+        }
+
+        total_contact_completeness = 0.0
+
+        for contact in contacts_result.data:
+            completeness_score = 0
+            total_fields = 5  # Key fields to check
+
+            if contact.get("email"):
+                contact_metrics["contacts_with_email"] += 1
+                completeness_score += 1
+
+            if contact.get("phone"):
+                contact_metrics["contacts_with_phone"] += 1
+                completeness_score += 1
+
+            if contact.get("linkedin_url"):
+                contact_metrics["contacts_with_linkedin"] += 1
+                completeness_score += 1
+
+            if contact.get("job_title"):
+                contact_metrics["contacts_with_title"] += 1
+                completeness_score += 1
+
+            if contact.get("is_verified"):
+                contact_metrics["verified_contacts"] += 1
+                completeness_score += 1
+
+            total_contact_completeness += (completeness_score / total_fields) * 100
+
+        if contacts_result.data:
+            contact_metrics["avg_data_completeness"] = int(
+                round(total_contact_completeness / len(contacts_result.data), 2)
+            )
+
+        # Calculate overall quality score
+        overall_quality = {
+            "company_data_quality": company_metrics["avg_data_completeness"],
+            "contact_data_quality": contact_metrics["avg_data_completeness"],
+            "overall_score": round(
+                (
+                    company_metrics["avg_data_completeness"]
+                    + contact_metrics["avg_data_completeness"]
+                )
+                / 2,
+                2,
+            ),
+        }
+
+        return {
+            "company_metrics": company_metrics,
+            "contact_metrics": contact_metrics,
+            "overall_quality": overall_quality,
+            "recommendations": [
+                "Focus on collecting company descriptions for better lead qualification",
+                "Improve website data collection for better company insights",
+                "Enhance contact verification processes",
+                "Implement data enrichment for missing fields",
+            ],
+        }
+
+    except Exception as e:
+        logger.error(f"Error getting data quality metrics: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail="Failed to retrieve data quality metrics"
+        )
+
+
+# ... existing code ...
