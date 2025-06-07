@@ -35,7 +35,7 @@ class SupabaseClient:
             # Try to access the client
             if self._client is None:
                 return False
-            self._client.table("test").select("*").limit(1).execute()
+            self._client.table("schema_migrations").select("*").limit(1).execute()
             return True
         except Exception as e:
             print(f"Connection test failed: {e}")

@@ -16,8 +16,8 @@ async def lifespan(app: FastAPI):
 
     # Test Supabase connection
     try:
-        # Simple test query to verify connection
-        get_supabase_client().table("test").select("*").limit(1).execute()
+        # Simple test query to verify connection using schema_migrations table
+        get_supabase_client().table("schema_migrations").select("*").limit(1).execute()
         print("✅ Supabase connection successful")
     except Exception as e:
         print(f"⚠️ Supabase connection test failed: {e}")
