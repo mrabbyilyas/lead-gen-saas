@@ -6,6 +6,7 @@ import uvicorn
 from app.core.config import settings
 from app.core.database import get_supabase_client
 from app.api.v1.api import api_router
+from app.services.scheduler_service import get_scheduler_service
 
 
 @asynccontextmanager
@@ -23,10 +24,27 @@ async def lifespan(app: FastAPI):
         print(f"⚠️ Supabase connection test failed: {e}")
         print("📝 Note: This is expected if tables don't exist yet")
 
+    # Initialize and start scheduler service
+    try:
+        scheduler = get_scheduler_service()
+        scheduler.start()
+        print("✅ Scheduler service started successfully")
+    except Exception as e:
+        print(f"⚠️ Failed to start scheduler service: {e}")
+        print("📝 Note: Monitoring tasks will not run automatically")
+
     yield
 
     # Shutdown
     print("🛑 Shutting down Lead Generation SaaS Backend...")
+    
+    # Stop scheduler service
+    try:
+        scheduler = get_scheduler_service()
+        scheduler.stop()
+        print("✅ Scheduler service stopped successfully")
+    except Exception as e:
+        print(f"⚠️ Failed to stop scheduler service: {e}")
 
 
 app = FastAPI(
